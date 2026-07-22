@@ -21,6 +21,8 @@ Custom ERP • SAP S/4HANA • SAP Integration Suite • API Management • SAP 
 
 Transform a legacy **PHP/MySQL ERP** into a modern **SAP-powered Digital Enterprise** where every business event flows automatically through SAP Integration Suite into SAP S/4HANA.
 
+<img width="550" height="362" alt="image" src="https://github.com/user-attachments/assets/ff4e13f3-f4b3-4c25-9f4e-21f9f4ea0084" />
+
 ---
 
 ## 🖼️ Enterprise Architecture
