@@ -1,0 +1,17 @@
+{
+    "name": "albsale/custom-erp",
+    "description": "Albsale Vlora Custom ERP — kanali B2B/B2C i integruar me SAP S/4HANA përmes SAP Integration Suite.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-curl": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*"
+    },
+    "autoload": {
+        "classmap": ["src/Models/", "src/Config/"],
+        "files": ["src/Config/env.php", "src/Security/auth.php", "src/Lib/canonical.php"]
+    }
+}
