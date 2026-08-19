@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EventCanonical_v1.xsd
+  Kontrata e eventit O2C që SAP CI POST-on te Custom ERP
+  (public/api/integration/receive_event.php). Fushat pasqyrojnë pikërisht ato që
+  lexon receive_event.php. DocumentType: ORDRSP | DESADV | INVOIC | REJECT.
+  Namespace: urn:albsale:o2c:canonical:1.0
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:element name="OrderEvent">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"       type="o2c:EvtHeaderType"/>
+        <xs:element name="Reference"    type="o2c:EvtReferenceType"/>
+        <xs:element name="Confirmation" type="o2c:ConfirmationType" minOccurs="0"/>
+        <xs:element name="Despatch"     type="o2c:DespatchType"     minOccurs="0"/>
+        <xs:element name="Invoice"      type="o2c:InvoiceType"      minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="EvtHeaderType">
+    <xs:sequence>
+      <xs:element name="DocumentType"  type="o2c:DocTypeEnum"/>
+      <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+      <xs:element name="S4OrderId"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Message"       type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="DocTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ORDRSP"/>
+      <xs:enumeration value="DESADV"/>
+      <xs:enumeration value="INVOIC"/>
+      <xs:enumeration value="REJECT"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="EvtReferenceType">
+    <xs:sequence>
+      <!-- CustomerRef = ZINN ; SaltOrderRef = idso i porosisë në ERP -->
+      <xs:element name="CustomerRef"  type="xs:string" minOccurs="0"/>
+      <xs:element name="SaltOrderRef" type="xs:integer" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfirmationType">
+    <xs:sequence>
+      <xs:element name="ConfirmedQuantity" type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DespatchType">
+    <xs:sequence>
+      <xs:element name="DeliveryNo" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InvoiceType">
+    <xs:sequence>
+      <xs:element name="InvoiceNo" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

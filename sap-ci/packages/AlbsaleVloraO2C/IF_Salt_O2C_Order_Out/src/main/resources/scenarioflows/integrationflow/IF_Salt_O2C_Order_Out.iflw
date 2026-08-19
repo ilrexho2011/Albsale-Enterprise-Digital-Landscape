@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_O2C_Order_Out.iflw  ·  Package: AlbsaleVloraO2C
+  OUTBOUND: Custom ERP (send_order.php) -> SAP CI -> S/4HANA (IDoc ORDERS05).
+  Sender adapter: HTTPS (role Receiver on CI, i.e. CI ekspozon endpoint /http/salt/orders).
+  Receiver adapter: IDoc (SOAP/HTTP) drejt S/4HANA.
+  Të gjitha vlerat organizative dhe kredencialet janë Externalized Parameters.
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   targetNamespace="http://www.sap.com/xi/XI/1.0/xliff"
+                   id="Definitions_Salt_O2C_Order_Out">
+
+  <bpmn2:collaboration id="Collaboration_OrderOut" name="IF_Salt_O2C_Order_Out">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>iflowType</key><value>defaultIflow</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+
+    <!-- ================= Participants ================= -->
+    <bpmn2:participant id="Participant_Sender" ifl:type="EndpointSender" name="ERP_Salt">
+      <bpmn2:extensionElements>
+        <ifl:property><key>enableBasicAuthentication</key><value>false</value></ifl:property>
+        <ifl:property><key>ifl:type</key><value>EndpointSender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:participant>
+
+    <bpmn2:participant id="Participant_Receiver" ifl:type="EndpointReceiver" name="S4HANA">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ifl:type</key><value>EndpointReceiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:participant>
+
+    <bpmn2:participant id="Participant_Process" ifl:type="IntegrationProcess" name="Integration Process"
+                       processRef="Process_OrderOut"/>
+
+    <!-- ================= Message Flows (Adapters) ================= -->
+    <bpmn2:messageFlow id="MF_Sender_HTTPS" name="HTTPS"
+                       sourceRef="Participant_Sender" targetRef="StartEvent_Order">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>Description</key><value>Endpoint qe CI ekspozon per ERP-n</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/orders</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>userRole</key><value>ESBMessaging.send</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>MessageContentType</key><value>application/xml</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <bpmn2:messageFlow id="MF_Receiver_IDoc" name="IDoc"
+                       sourceRef="EndEvent_Order" targetRef="Participant_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>IDOC</value></ifl:property>
+        <ifl:property><key>TransportProtocol</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_idoc_url}}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{s4_credential_alias}}</value></ifl:property>
+        <ifl:property><key>authenticationMethod</key><value>Basic</value></ifl:property>
+        <ifl:property><key>idocSenderPort</key><value>{{s4_sender_port}}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <!-- ================= Integration Process ================= -->
+  <bpmn2:process id="Process_OrderOut" name="Integration Process">
+
+    <bpmn2:startEvent id="StartEvent_Order" name="Start">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:outgoing>Flow_1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <!-- 1) Content Modifier: parametrat organizativë si exchange properties -->
+    <bpmn2:callActivity id="CM_SetParams" name="Set Org Params" ifl:activityType="Enricher">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;p_sndprn&lt;/name&gt;&lt;value&gt;{{erp_logical_system}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_rcvprn&lt;/name&gt;&lt;value&gt;{{s4_logical_system}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_vkorg&lt;/name&gt;&lt;value&gt;{{sales_org}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_vtweg&lt;/name&gt;&lt;value&gt;{{distr_channel}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_spart&lt;/name&gt;&lt;value&gt;{{division}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_auart&lt;/name&gt;&lt;value&gt;{{order_type}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>Flow_1</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 2) Groovy: nxjerr CorrelationId, vendos header/MPL -->
+    <bpmn2:callActivity id="SC_Headers" name="Set Correlation Headers" ifl:activityType="Script">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>setOrderHeaders.groovy</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>Flow_2</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 3) XSLT Mapping: canonical -> ORDERS05 -->
+    <bpmn2:callActivity id="MM_ToOrders05" name="Map Canonical to ORDERS05" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/Canonical_to_ORDERS05.xsl</value></ifl:property>
+        <ifl:property><key>mappingSource</key><value>StaticResource</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>Flow_3</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="EndEvent_Order" name="End">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>Flow_4</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="Flow_1" sourceRef="StartEvent_Order" targetRef="CM_SetParams"/>
+    <bpmn2:sequenceFlow id="Flow_2" sourceRef="CM_SetParams"    targetRef="SC_Headers"/>
+    <bpmn2:sequenceFlow id="Flow_3" sourceRef="SC_Headers"      targetRef="MM_ToOrders05"/>
+    <bpmn2:sequenceFlow id="Flow_4" sourceRef="MM_ToOrders05"   targetRef="EndEvent_Order"/>
+
+    <!-- ================= Exception Subprocess ================= -->
+    <bpmn2:subProcess id="Exc_Sub" name="Exception Handler" triggeredByEvent="true">
+      <bpmn2:startEvent id="Exc_Start" name="Error Start">
+        <bpmn2:errorEventDefinition/>
+        <bpmn2:outgoing>Flow_E1</bpmn2:outgoing>
+      </bpmn2:startEvent>
+      <bpmn2:callActivity id="SC_Error" name="Log and Build Fault" ifl:activityType="Script">
+        <bpmn2:extensionElements>
+          <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+          <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+          <ifl:property><key>script</key><value>logAndRaise.groovy</value></ifl:property>
+        </bpmn2:extensionElements>
+        <bpmn2:incoming>Flow_E1</bpmn2:incoming>
+        <bpmn2:outgoing>Flow_E2</bpmn2:outgoing>
+      </bpmn2:callActivity>
+      <bpmn2:endEvent id="Exc_End" name="Error End">
+        <bpmn2:incoming>Flow_E2</bpmn2:incoming>
+      </bpmn2:endEvent>
+      <bpmn2:sequenceFlow id="Flow_E1" sourceRef="Exc_Start" targetRef="SC_Error"/>
+      <bpmn2:sequenceFlow id="Flow_E2" sourceRef="SC_Error"  targetRef="Exc_End"/>
+    </bpmn2:subProcess>
+
+  </bpmn2:process>
+</bpmn2:definitions>

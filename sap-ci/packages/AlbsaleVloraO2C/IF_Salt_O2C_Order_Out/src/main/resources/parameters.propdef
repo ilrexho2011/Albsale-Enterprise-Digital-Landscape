@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters>
+  <param_references>
+    <parameter><name>erp_logical_system</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>s4_logical_system</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>s4_idoc_url</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>s4_credential_alias</name><datatype>custom:credentialName</datatype></parameter>
+    <parameter><name>s4_sender_port</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>sales_org</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>distr_channel</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>division</name><datatype>xsd:string</datatype></parameter>
+    <parameter><name>order_type</name><datatype>xsd:string</datatype></parameter>
+  </param_references>
+</parameters>

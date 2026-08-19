@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: IF_Salt_O2C_Order_Out; singleton:=true
+Bundle-Name: IF_Salt_O2C_Order_Out
+Bundle-Version: 1.0.0
+SAP-BundleType: IntegrationFlow
+SAP-NodeType: IFLMAP
+SAP-RuntimeProfile: iflmap
+Import-Package: com.sap.esb.application.services.cxf.interceptor,com.s
+ ap.esb.security,com.sap.it.op.agent.api,com.sap.it.op.agent.mpl,javax
+ .jms,javax.xml.bind,org.apache.camel;version="[2.8,3)",org.slf4j;vers
+ ion="[1.5,2)"
+Origin-Bundle-Name: IF_Salt_O2C_Order_Out

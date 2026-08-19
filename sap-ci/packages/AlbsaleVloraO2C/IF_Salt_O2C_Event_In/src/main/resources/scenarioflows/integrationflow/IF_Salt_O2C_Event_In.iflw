@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_O2C_Event_In.iflw  ·  Package: AlbsaleVloraO2C
+  INBOUND: S/4HANA (IDoc ORDRSP / DELVRY03 / INVOIC02) -> SAP CI -> Custom ERP
+           (receive_event.php) si event kanonik O2C.
+  Sender adapter: IDoc (S/4 dërgon IDoc statusi te CI).
+  Receiver adapter: HTTP drejt ERP-së, me header X-Inbound-Token (Secure Parameter).
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   targetNamespace="http://www.sap.com/xi/XI/1.0/xliff"
+                   id="Definitions_Salt_O2C_Event_In">
+
+  <bpmn2:collaboration id="Collaboration_EventIn" name="IF_Salt_O2C_Event_In">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+
+    <bpmn2:participant id="Participant_Sender" ifl:type="EndpointSender" name="S4HANA">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ifl:type</key><value>EndpointSender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:participant>
+
+    <bpmn2:participant id="Participant_Receiver" ifl:type="EndpointReceiver" name="ERP_Salt">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ifl:type</key><value>EndpointReceiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:participant>
+
+    <bpmn2:participant id="Participant_Process" ifl:type="IntegrationProcess" name="Integration Process"
+                       processRef="Process_EventIn"/>
+
+    <!-- Sender: IDoc nga S/4 -->
+    <bpmn2:messageFlow id="MF_Sender_IDoc" name="IDoc"
+                       sourceRef="Participant_Sender" targetRef="StartEvent_Evt">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>IDOC</value></ifl:property>
+        <ifl:property><key>TransportProtocol</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/events</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <!-- Receiver: HTTP POST te ERP receive_event.php -->
+    <bpmn2:messageFlow id="MF_Receiver_HTTP" name="HTTP"
+                       sourceRef="EndEvent_Evt" targetRef="Participant_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>httpAddressWithoutQuery</key><value>{{erp_receive_event_url}}</value></ifl:property>
+        <ifl:property><key>httpMethod</key><value>POST</value></ifl:property>
+        <ifl:property><key>authenticationMethod</key><value>None</value></ifl:property>
+        <ifl:property><key>httpRequestTimeout</key><value>30000</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Process_EventIn" name="Integration Process">
+
+    <bpmn2:startEvent id="StartEvent_Evt" name="Start">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:outgoing>F1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <!-- 1) XSLT: IDoc statusi S/4 -> event kanonik -->
+    <bpmn2:callActivity id="MM_ToCanonical" name="Map S4 Event to Canonical" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/S4Event_to_Canonical.xsl</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>F1</bpmn2:incoming>
+      <bpmn2:outgoing>F2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 2) Content Modifier: lexo token-in nga Secure Parameter si property -->
+    <bpmn2:callActivity id="CM_Token" name="Load Inbound Token" ifl:activityType="Enricher">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;erp_inbound_token&lt;/name&gt;&lt;value&gt;{{erp_inbound_token}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>F2</bpmn2:incoming>
+      <bpmn2:outgoing>F3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 3) Groovy: vendos X-Inbound-Token + Content-Type + MPL -->
+    <bpmn2:callActivity id="SC_Ctx" name="Set Inbound Context" ifl:activityType="Script">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>setInboundContext.groovy</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>F3</bpmn2:incoming>
+      <bpmn2:outgoing>F4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="EndEvent_Evt" name="End">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>F4</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="F1" sourceRef="StartEvent_Evt" targetRef="MM_ToCanonical"/>
+    <bpmn2:sequenceFlow id="F2" sourceRef="MM_ToCanonical" targetRef="CM_Token"/>
+    <bpmn2:sequenceFlow id="F3" sourceRef="CM_Token"       targetRef="SC_Ctx"/>
+    <bpmn2:sequenceFlow id="F4" sourceRef="SC_Ctx"         targetRef="EndEvent_Evt"/>
+  </bpmn2:process>
+</bpmn2:definitions>
