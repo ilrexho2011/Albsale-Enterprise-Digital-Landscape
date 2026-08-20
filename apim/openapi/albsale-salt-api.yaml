@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: Albsale Salt O2C API
+  version: "1.0.0"
+  description: >
+    Public Order-to-Cash API for Albsale Vlora, fronting SAP Cloud Integration via
+    SAP API Management. Endpoints cover order placement, availability (aATP), stock,
+    and A/R finance status. Auth: API Key (X-Apikey). Rate limit + daily quota apply.
+servers:
+  - url: https://api.albsalevlora.al/albsale/o2c/v1
+    description: SAP API Management (production)
+security:
+  - ApiKeyAuth: []
+paths:
+  /orders:
+    post:
+      summary: Place a sales order (async, queued to SAP via JMS)
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderRequest' }
+      responses:
+        '202':
+          description: Order accepted and queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderAck' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /atp:
+    post:
+      summary: Advanced ATP check (confirmed quantity and date)
+      operationId: checkAtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AtpRequest' }
+      responses:
+        '200':
+          description: Availability result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AtpResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /stock:
+    get:
+      summary: Read material stock
+      operationId: readStock
+      parameters:
+        - { name: material, in: query, required: true, schema: { type: string } }
+        - { name: plant, in: query, required: false, schema: { type: string, default: "1000" } }
+      responses:
+        '200':
+          description: Stock result
+          content: { application/json: { schema: { $ref: '#/components/schemas/StockResponse' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /finance:
+    get:
+      summary: Customer A/R open items
+      operationId: financeStatus
+      parameters:
+        - { name: customer, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Open A/R items
+          content: { application/json: { schema: { $ref: '#/components/schemas/FinanceStatus' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+components:
+  securitySchemes:
+    ApiKeyAuth: { type: apiKey, in: header, name: X-Apikey }
+  responses:
+    BadRequest: { description: Invalid request, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Unauthorized: { description: Missing or invalid API key, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    RateLimited: { description: Rate limit or quota exceeded, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  schemas:
+    OrderRequest:
+      type: object
+      required: [idso]
+      properties:
+        idso: { type: integer, example: 12 }
+    OrderAck:
+      type: object
+      properties:
+        message: { type: string }
+        correlationId: { type: string, example: "SALT-I09345R-000012-8b15f586" }
+        dispatchStatus: { type: string, enum: [SENT, FAILED, DEAD] }
+    AtpRequest:
+      type: object
+      required: [saltcode, quantity]
+      properties:
+        saltcode: { type: integer, example: 13455 }
+        quantity: { type: number, example: 50 }
+        date: { type: string, format: date, example: "2026-09-01" }
+        plant: { type: string, example: "1000" }
+    AtpResponse:
+      type: object
+      properties:
+        confirmedQuantity: { type: number }
+        confirmedDate: { type: string }
+        shortfall: { type: number }
+        fullyConfirmed: { type: boolean }
+    StockResponse:
+      type: object
+      properties:
+        saltcode: { type: integer }
+        available_qty: { type: number }
+        unit: { type: string }
+    FinanceStatus:
+      type: object
+      properties:
+        customer: { type: string }
+        openItemCount: { type: integer }
+        totalOpen: { type: number }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              invoiceNo: { type: string }
+              amount: { type: number }
+              dueDate: { type: string }
+    Error:
+      type: object
+      properties:
+        message: { type: string }

@@ -1,0 +1,17 @@
+{
+  "name": "albsale-o2c-business",
+  "displayName": "Albsale O2C — Business Tier",
+  "description": "Order-to-Cash API access for B2B partners. Daily quota + spike protection.",
+  "approvalType": "manual",
+  "apiResources": ["/albsale/o2c/v1", "/albsale/o2c/v1/**"],
+  "proxies": ["AlbsaleSaltAPI"],
+  "environments": ["prod"],
+  "quota": "10000",
+  "quotaInterval": "1",
+  "quotaTimeUnit": "day",
+  "scopes": ["orders.write", "atp.read", "stock.read", "finance.read"],
+  "attributes": [
+    { "name": "access", "value": "public" },
+    { "name": "tier", "value": "business" }
+  ]
+}

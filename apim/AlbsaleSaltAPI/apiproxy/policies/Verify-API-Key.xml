@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Autentikim me API Key nga header X-Apikey -->
+<VerifyAPIKey name="Verify-API-Key">
+  <DisplayName>Verify API Key</DisplayName>
+  <APIKey ref="request.header.X-Apikey"/>
+</VerifyAPIKey>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  API Proxy bundle: AlbsaleSaltAPI (SAP API Management / Apigee Edge format).
+  Fronton API-t publike O2C (te SAP CI) me siguri + kufizim + CORS + analitikë.
+  Base path: /albsale/o2c/v1
+-->
+<APIProxy revision="1" name="AlbsaleSaltAPI">
+  <DisplayName>Albsale Salt O2C API</DisplayName>
+  <Description>Public O2C API (orders, ATP, stock, finance) fronting SAP Cloud Integration.</Description>
+  <BasePaths>/albsale/o2c/v1</BasePaths>
+  <ConfigurationVersion majorVersion="4" minorVersion="0"/>
+  <Policies>
+    <Policy>Verify-API-Key</Policy>
+    <Policy>Quota-Business</Policy>
+    <Policy>Spike-Arrest</Policy>
+    <Policy>CORS</Policy>
+    <Policy>Remove-API-Key-Header</Policy>
+  </Policies>
+  <ProxyEndpoints><ProxyEndpoint>default</ProxyEndpoint></ProxyEndpoints>
+  <TargetEndpoints><TargetEndpoint>default</TargetEndpoint></TargetEndpoints>
+</APIProxy>

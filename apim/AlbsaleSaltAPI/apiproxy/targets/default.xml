@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- TargetEndpoint: backend = SAP Cloud Integration runtime (endpoint-et /http/salt/*) -->
+<TargetEndpoint name="default">
+  <HTTPTargetConnection>
+    <URL>https://cpi-tenant.it-cpi.eu1.hana.ondemand.com/http/salt</URL>
+    <Authentication>
+      <!-- OAuth2 client credentials drejt CI (Key/Secret në KVM, jo hardkoduar) -->
+      <Ref>albsale.cpi.oauth</Ref>
+    </Authentication>
+    <Properties>
+      <Property name="connect.timeout.millis">10000</Property>
+      <Property name="io.timeout.millis">30000</Property>
+    </Properties>
+  </HTTPTargetConnection>
+</TargetEndpoint>

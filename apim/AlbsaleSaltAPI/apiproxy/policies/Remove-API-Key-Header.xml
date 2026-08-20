@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Mos e përcill API Key te backend-i (CI) -->
+<AssignMessage name="Remove-API-Key-Header">
+  <DisplayName>Remove API Key Header</DisplayName>
+  <Remove><Headers><Header name="X-Apikey"/></Headers></Remove>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Mbrojtje ndaj spike-ve: 20 kërkesa/sekondë -->
+<SpikeArrest name="Spike-Arrest">
+  <DisplayName>Spike Arrest</DisplayName>
+  <Rate>20ps</Rate>
+  <Identifier ref="client_id"/>
+</SpikeArrest>

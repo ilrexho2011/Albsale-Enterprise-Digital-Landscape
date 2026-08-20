@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Kufi ditor sipas produktit/aplikacionit (nga developer app) -->
+<Quota name="Quota-Business" type="calendar">
+  <DisplayName>Quota Business</DisplayName>
+  <Allow count="10000" countRef="verifyapikey.Verify-API-Key.apiproduct.developer.quota.limit"/>
+  <Interval>1</Interval>
+  <TimeUnit>day</TimeUnit>
+  <StartTime>2026-01-01 00:00:00</StartTime>
+  <Identifier ref="client_id"/>
+</Quota>
