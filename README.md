@@ -199,6 +199,15 @@ Analytics
 
 ---
 
+## 🌟 Monitoring Dashboard
+
+- **Purpose:** Collects integration alerts, persists them to ERP and notifies Ops of critical ones.
+- **Business process:** Monitoring/Alerting (Phase 5).
+- **Technology:** SAP CI/CPI + Mail.
+- **Source:** Exception subprocesses / MPL scanning · **Target:** ERP `monitor_alert.php` + Email · **Status:** v1.0.0
+
+---
+
 ## 🌟 Future Vision
 
 - AI-assisted Procurement
