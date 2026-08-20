@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: IF_Salt_O2C_Order_Consumer; singleton:=true
+Bundle-Name: IF_Salt_O2C_Order_Consumer
+Bundle-Version: 1.0.0
+SAP-BundleType: IntegrationFlow
+SAP-NodeType: IFLMAP
+SAP-RuntimeProfile: iflmap
+Origin-Bundle-Name: IF_Salt_O2C_Order_Consumer

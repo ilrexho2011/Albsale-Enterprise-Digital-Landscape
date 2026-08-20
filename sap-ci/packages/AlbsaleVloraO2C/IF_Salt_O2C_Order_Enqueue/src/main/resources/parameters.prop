@@ -1,0 +1,2 @@
+# IF_Salt_O2C_Order_Enqueue
+jms_queue=salt.orders

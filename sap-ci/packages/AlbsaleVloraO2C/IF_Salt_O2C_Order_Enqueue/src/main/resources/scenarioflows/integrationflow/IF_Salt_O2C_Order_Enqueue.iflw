@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_O2C_Order_Enqueue.iflw  ·  Package: AlbsaleVloraO2C  ·  Phase 2 (Producer)
+  Decoupling asinkron: ERP POST-on porosinë kanonike -> CI e SHKRUAN në radhën JMS
+  'salt.orders' dhe kthen menjëherë 202 Accepted. Nuk pret S/4HANA-n.
+  Konsumatori (IF_Salt_O2C_Order_Consumer) e përpunon me retry.
+  Sender: HTTPS /salt/orders/async   Receiver: JMS queue salt.orders
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   id="Definitions_Order_Enqueue">
+
+  <bpmn2:collaboration id="Collab_Enqueue" name="IF_Salt_O2C_Order_Enqueue">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+
+    <bpmn2:participant id="P_Sender" ifl:type="EndpointSender" name="ERP_Salt"/>
+    <bpmn2:participant id="P_Queue"  ifl:type="EndpointReceiver" name="JMS_Broker"/>
+    <bpmn2:participant id="P_Proc"   ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Enqueue"/>
+
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_Enq">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/orders/async</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>userRole</key><value>ESBMessaging.send</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <bpmn2:messageFlow id="MF_JMS" name="JMS" sourceRef="End_Enq" targetRef="P_Queue">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>JMS</value></ifl:property>
+        <ifl:property><key>queueName</key><value>salt.orders</value></ifl:property>
+        <ifl:property><key>numberOfConcurrentProcesses</key><value>1</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_Enqueue" name="Integration Process">
+    <bpmn2:startEvent id="Start_Enq" name="Start">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:outgoing>e1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <!-- Ruaj CorrelationId + vendos përgjigje 202 për ERP -->
+    <bpmn2:callActivity id="SC_Ack" name="Set Correlation and 202" ifl:activityType="Script">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>ackEnqueue.groovy</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>e1</bpmn2:incoming>
+      <bpmn2:outgoing>e2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="End_Enq" name="End">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>e2</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="e1" sourceRef="Start_Enq" targetRef="SC_Ack"/>
+    <bpmn2:sequenceFlow id="e2" sourceRef="SC_Ack"    targetRef="End_Enq"/>
+  </bpmn2:process>
+</bpmn2:definitions>

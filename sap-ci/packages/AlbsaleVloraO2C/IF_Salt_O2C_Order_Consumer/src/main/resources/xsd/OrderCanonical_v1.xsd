@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OrderCanonical_v1.xsd
+  Kontrata e porosisë kanonike O2C që prodhon Custom ERP (src/Lib/canonical.php,
+  funksioni build_orders_canonical). Ky është "formati i mesit" që SAP CI e harton
+  më tej në IDoc ORDERS05.
+  Namespace: urn:albsale:o2c:canonical:1.0
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:element name="OrderCreate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"  type="o2c:HeaderType"/>
+        <xs:element name="Buyer"   type="o2c:BuyerType"/>
+        <xs:element name="Lines"   type="o2c:LinesType"/>
+        <xs:element name="Summary" type="o2c:SummaryType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="HeaderType">
+    <xs:sequence>
+      <xs:element name="DocumentType"  type="xs:string"  fixed="ORDERS"/>
+      <xs:element name="CorrelationId" type="xs:string"/>
+      <xs:element name="SenderId"      type="xs:string"/>
+      <xs:element name="OrderDate"     type="xs:date"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BuyerType">
+    <xs:sequence>
+      <!-- CustomerRef = ZINN i klientit -> KUNNR/CUSTOMER_ID në S/4 -->
+      <xs:element name="CustomerRef" type="xs:string"/>
+      <xs:element name="Name"        type="xs:string" minOccurs="0"/>
+      <xs:element name="Email"       type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LinesType">
+    <xs:sequence>
+      <xs:element name="Line" type="o2c:LineType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LineType">
+    <xs:sequence>
+      <xs:element name="LineNo"      type="xs:string"/>
+      <!-- ProductRef = saltcode -> MATNR/PRODUCT_ID -->
+      <xs:element name="ProductRef"  type="xs:string"/>
+      <xs:element name="Description" type="xs:string" minOccurs="0"/>
+      <xs:element name="Quantity"    type="xs:decimal"/>
+      <xs:element name="Unit"        type="xs:string"/>
+      <xs:element name="LineValue"   type="xs:decimal"/>
+      <xs:element name="Currency"    type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SummaryType">
+    <xs:sequence>
+      <xs:element name="TotalValue" type="xs:decimal"/>
+      <xs:element name="Currency"   type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

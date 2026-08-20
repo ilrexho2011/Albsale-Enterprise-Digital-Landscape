@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_O2C_Order_Consumer.iflw  ·  Package: AlbsaleVloraO2C  ·  Phase 2 (Consumer)
+  Konsumon nga radha JMS 'salt.orders' me RETRY eksponencial. Harton canonical->ORDERS05
+  dhe dërgon IDoc në S/4HANA. Pas maksimumit të përpjekjeve, mesazhi shkon në
+  Data Store 'salt_orders_dlq' (dead-letter) dhe njoftohet ERP-ja.
+  Sender: JMS salt.orders   Receiver: IDoc S/4HANA (+ Data Store DLQ)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   id="Definitions_Order_Consumer">
+
+  <bpmn2:collaboration id="Collab_Consumer" name="IF_Salt_O2C_Order_Consumer">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+
+    <bpmn2:participant id="P_Queue"    ifl:type="EndpointSender"   name="JMS_Broker"/>
+    <bpmn2:participant id="P_Receiver" ifl:type="EndpointReceiver" name="S4HANA"/>
+    <bpmn2:participant id="P_DLQ"      ifl:type="EndpointReceiver" name="DataStore_DLQ"/>
+    <bpmn2:participant id="P_Proc"     ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Consumer"/>
+
+    <!-- Sender JMS me RETRY eksponencial -->
+    <bpmn2:messageFlow id="MF_JMS_In" name="JMS" sourceRef="P_Queue" targetRef="Start_Con">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>JMS</value></ifl:property>
+        <ifl:property><key>queueName</key><value>salt.orders</value></ifl:property>
+        <ifl:property><key>retryOnException</key><value>true</value></ifl:property>
+        <ifl:property><key>maxRetries</key><value>5</value></ifl:property>
+        <ifl:property><key>retryInterval</key><value>1</value></ifl:property>            <!-- minuta -->
+        <ifl:property><key>exponentialBackoff</key><value>true</value></ifl:property>
+        <ifl:property><key>maxRetryInterval</key><value>60</value></ifl:property>
+        <ifl:property><key>deadLetterQueue</key><value>true</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <bpmn2:messageFlow id="MF_IDoc" name="IDoc" sourceRef="End_Con" targetRef="P_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>IDOC</value></ifl:property>
+        <ifl:property><key>TransportProtocol</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_idoc_url}}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{s4_credential_alias}}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <!-- Dead-letter në Data Store pas dështimit të përhershëm -->
+    <bpmn2:messageFlow id="MF_DLQ" name="Write DLQ" sourceRef="DS_DeadLetter" targetRef="P_DLQ">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>DataStoreOperations</value></ifl:property>
+        <ifl:property><key>operation</key><value>Write</value></ifl:property>
+        <ifl:property><key>storeName</key><value>salt_orders_dlq</value></ifl:property>
+        <ifl:property><key>expirationPeriod</key><value>30</value></ifl:property>  <!-- ditë -->
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_Consumer" name="Integration Process">
+    <bpmn2:startEvent id="Start_Con" name="Start">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:outgoing>c1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <bpmn2:callActivity id="CM_Params" name="Set Org Params" ifl:activityType="Enricher">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;p_rcvprn&lt;/name&gt;&lt;value&gt;{{s4_logical_system}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_vkorg&lt;/name&gt;&lt;value&gt;{{sales_org}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_vtweg&lt;/name&gt;&lt;value&gt;{{distr_channel}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_spart&lt;/name&gt;&lt;value&gt;{{division}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_auart&lt;/name&gt;&lt;value&gt;{{order_type}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>c1</bpmn2:incoming>
+      <bpmn2:outgoing>c2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="MM_ToOrders05" name="Map Canonical to ORDERS05" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/Canonical_to_ORDERS05.xsl</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>c2</bpmn2:incoming>
+      <bpmn2:outgoing>c3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="End_Con" name="End">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>c3</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="c1" sourceRef="Start_Con"    targetRef="CM_Params"/>
+    <bpmn2:sequenceFlow id="c2" sourceRef="CM_Params"    targetRef="MM_ToOrders05"/>
+    <bpmn2:sequenceFlow id="c3" sourceRef="MM_ToOrders05" targetRef="End_Con"/>
+
+    <!-- Exception: pas shterimit të retry-t, shkruaj DLQ + njofto -->
+    <bpmn2:subProcess id="Exc_Sub" name="Dead-letter Handler" triggeredByEvent="true">
+      <bpmn2:startEvent id="Exc_Start"><bpmn2:errorEventDefinition/><bpmn2:outgoing>x1</bpmn2:outgoing></bpmn2:startEvent>
+      <bpmn2:callActivity id="DS_DeadLetter" name="Write to DLQ Data Store" ifl:activityType="DataStoreOperations">
+        <bpmn2:extensionElements>
+          <ifl:property><key>activityType</key><value>DataStoreOperations</value></ifl:property>
+          <ifl:property><key>operation</key><value>Write</value></ifl:property>
+          <ifl:property><key>storeName</key><value>salt_orders_dlq</value></ifl:property>
+        </bpmn2:extensionElements>
+        <bpmn2:incoming>x1</bpmn2:incoming>
+        <bpmn2:outgoing>x2</bpmn2:outgoing>
+      </bpmn2:callActivity>
+      <bpmn2:callActivity id="SC_Notify" name="Notify ERP Failed" ifl:activityType="Script">
+        <bpmn2:extensionElements>
+          <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+          <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+          <ifl:property><key>script</key><value>notifyDeadLetter.groovy</value></ifl:property>
+        </bpmn2:extensionElements>
+        <bpmn2:incoming>x2</bpmn2:incoming>
+        <bpmn2:outgoing>x3</bpmn2:outgoing>
+      </bpmn2:callActivity>
+      <bpmn2:endEvent id="Exc_End"><bpmn2:incoming>x3</bpmn2:incoming></bpmn2:endEvent>
+      <bpmn2:sequenceFlow id="x1" sourceRef="Exc_Start"    targetRef="DS_DeadLetter"/>
+      <bpmn2:sequenceFlow id="x2" sourceRef="DS_DeadLetter" targetRef="SC_Notify"/>
+      <bpmn2:sequenceFlow id="x3" sourceRef="SC_Notify"     targetRef="Exc_End"/>
+    </bpmn2:subProcess>
+  </bpmn2:process>
+</bpmn2:definitions>

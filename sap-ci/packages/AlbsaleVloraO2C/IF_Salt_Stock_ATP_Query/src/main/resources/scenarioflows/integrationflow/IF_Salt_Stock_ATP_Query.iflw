@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_Stock_ATP_Query.iflw  ·  Package: AlbsaleVloraO2C  ·  Phase 2 (OData ATP/Stock)
+  ERP pyet për disponueshmërinë e një materiali (saltcode). CI e kthen në kërkesë OData
+  drejt S/4HANA (API_MATERIAL_STOCK_SRV), pastaj harton përgjigjen në JSON kanonik
+  {material, plant, availableQuantity, unit, atpQuantity}.
+  Sender: HTTPS GET /salt/stock?material=..&plant=..   Receiver: OData (Request-Reply)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   id="Definitions_Stock_ATP">
+
+  <bpmn2:collaboration id="Collab_Stock" name="IF_Salt_Stock_ATP_Query">
+    <bpmn2:extensionElements>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+
+    <bpmn2:participant id="P_Sender" ifl:type="EndpointSender"   name="ERP_Salt"/>
+    <bpmn2:participant id="P_OData"  ifl:type="EndpointReceiver" name="S4HANA_OData"/>
+    <bpmn2:participant id="P_Proc"   ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Stock"/>
+
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_Stk">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/stock</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>userRole</key><value>ESBMessaging.send</value></ifl:property>
+        <ifl:property><key>Method</key><value>GET</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <!-- OData Request-Reply -->
+    <bpmn2:messageFlow id="MF_OData" name="OData" sourceRef="RR_OData" targetRef="P_OData">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HCIOData</value></ifl:property>
+        <ifl:property><key>TransportProtocol</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_odata_stock_url}}</value></ifl:property>   <!-- .../API_MATERIAL_STOCK_SRV -->
+        <ifl:property><key>credentialName</key><value>{{s4_odata_credential}}</value></ifl:property>
+        <ifl:property><key>operation</key><value>Query(GET)</value></ifl:property>
+        <ifl:property><key>resourcePath</key><value>A_MatlStkInAcctMod</value></ifl:property>
+        <ifl:property><key>queryOptions</key><value>$filter=Material eq '${property.p_material}' and Plant eq '${property.p_plant}'&amp;$select=Material,Plant,MatlWrhsStkQtyInMatlBaseUnit,MaterialBaseUnit</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_Stock" name="Integration Process">
+    <bpmn2:startEvent id="Start_Stk" name="Start">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:outgoing>s1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <!-- 1) Lexo query params (material, plant) -> exchange properties -->
+    <bpmn2:callActivity id="SC_ReadReq" name="Read Request Params" ifl:activityType="Script">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>readStockRequest.groovy</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>s1</bpmn2:incoming>
+      <bpmn2:outgoing>s2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 2) Request-Reply drejt OData S/4 -->
+    <bpmn2:callActivity id="RR_OData" name="Query S4 Stock (OData)" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>s2</bpmn2:incoming>
+      <bpmn2:outgoing>s3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <!-- 3) Harto përgjigjen OData -> JSON kanonik -->
+    <bpmn2:callActivity id="SC_MapResp" name="Map OData to Canonical JSON" ifl:activityType="Script">
+      <bpmn2:extensionElements>
+        <ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>mapStockResponse.groovy</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>s3</bpmn2:incoming>
+      <bpmn2:outgoing>s4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="End_Stk" name="End">
+      <bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>s4</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="s1" sourceRef="Start_Stk"  targetRef="SC_ReadReq"/>
+    <bpmn2:sequenceFlow id="s2" sourceRef="SC_ReadReq" targetRef="RR_OData"/>
+    <bpmn2:sequenceFlow id="s3" sourceRef="RR_OData"   targetRef="SC_MapResp"/>
+    <bpmn2:sequenceFlow id="s4" sourceRef="SC_MapResp" targetRef="End_Stk"/>
+  </bpmn2:process>
+</bpmn2:definitions>

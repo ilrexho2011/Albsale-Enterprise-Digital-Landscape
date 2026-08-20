@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ORDERS05_subset.xsd
+  Nën-skema e IDoc ORDERS05 (basic type ORDERS05, message type ORDERS) e mjaftueshme
+  për Phase 1 (krijim Sales Order në S/4HANA). Përdor vetëm segmentet e nevojshme:
+    EDI_DC40  - kontrolli i IDoc
+    E1EDK01   - header i dokumentit (kurs, valutë, referenca)
+    E1EDK14   - kualifikues organizativë (VKORG/VTWEG/SPART/AUART)
+    E1EDKA1   - partnerët (AG = Sold-to / porositës)
+    E1EDP01   - pozicioni (item) + E1EDP19 identifikimi i materialit
+  Për fusha shtesë, zgjeroje skemën sipas WSDL/IDoc metadata të sistemit tënd S/4.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <xs:element name="ORDERS05">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="IDOC" type="IDOCType" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="IDOCType">
+    <xs:sequence>
+      <xs:element name="EDI_DC40" type="EDI_DC40Type"/>
+      <xs:element name="E1EDK01"  type="E1EDK01Type"/>
+      <xs:element name="E1EDK14"  type="E1EDK14Type" maxOccurs="unbounded"/>
+      <xs:element name="E1EDKA1"  type="E1EDKA1Type" maxOccurs="unbounded"/>
+      <xs:element name="E1EDP01"  type="E1EDP01Type" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="BEGIN" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="EDI_DC40Type">
+    <xs:sequence>
+      <xs:element name="TABNAM"   type="xs:string" default="EDI_DC40"/>
+      <xs:element name="DIRECT"   type="xs:string" default="2"/>
+      <xs:element name="IDOCTYP"  type="xs:string" default="ORDERS05"/>
+      <xs:element name="MESTYP"   type="xs:string" default="ORDERS"/>
+      <xs:element name="SNDPRT"   type="xs:string" default="LS"/>
+      <xs:element name="SNDPRN"   type="xs:string"/>
+      <xs:element name="RCVPRT"   type="xs:string" default="LS"/>
+      <xs:element name="RCVPRN"   type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="E1EDK01Type">
+    <xs:sequence>
+      <xs:element name="CURCY"   type="xs:string" minOccurs="0"/>  <!-- valuta -->
+      <xs:element name="BELNR"   type="xs:string" minOccurs="0"/>  <!-- referenca e blerësit -->
+      <xs:element name="BSART"   type="xs:string" minOccurs="0"/>  <!-- lloji i dokumentit -->
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="E1EDK14Type">
+    <xs:sequence>
+      <xs:element name="QUALF" type="xs:string"/>  <!-- 006=AUART,008=VKORG,007=VTWEG,009=SPART -->
+      <xs:element name="ORGID" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="E1EDKA1Type">
+    <xs:sequence>
+      <xs:element name="PARVW" type="xs:string"/>  <!-- AG=Sold-to, WE=Ship-to -->
+      <xs:element name="PARTN" type="xs:string"/>  <!-- numri i klientit (ZINN/KUNNR) -->
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="E1EDP01Type">
+    <xs:sequence>
+      <xs:element name="POSEX"  type="xs:string"/>            <!-- numri i pozicionit -->
+      <xs:element name="MENGE"  type="xs:string"/>            <!-- sasia -->
+      <xs:element name="MENEE"  type="xs:string"/>            <!-- njësia -->
+      <xs:element name="VPREI"  type="xs:string" minOccurs="0"/> <!-- çmimi -->
+      <xs:element name="E1EDP19" type="E1EDP19Type" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="E1EDP19Type">
+    <xs:sequence>
+      <xs:element name="QUALF" type="xs:string"/>  <!-- 002 = numri i materialit i blerësit -->
+      <xs:element name="IDTNR" type="xs:string"/>  <!-- saltcode / MATNR -->
+      <xs:element name="KTEXT" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="SEGMENT" type="xs:string" use="required"/>
+  </xs:complexType>
+
+</xs:schema>
