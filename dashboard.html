@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Albsale Vlora — O2C Analytics & Monitoring</title>
+<style>
+  .viz-root{
+    color-scheme:light;
+    --page:#f9f9f7; --surface-1:#fcfcfb; --text-primary:#0b0b0b; --text-secondary:#52514e;
+    --muted:#898781; --grid:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,.10);
+    --series-1:#2a78d6; --o1:#86b6ef; --o2:#6da7ec; --o3:#3987e5; --o4:#2a78d6; --o5:#1c5cab; --o6:#184f95; --o7:#104281;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b; --success-text:#006300;
+  }
+  @media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{
+    color-scheme:dark;
+    --page:#0d0d0d; --surface-1:#1a1a19; --text-primary:#fff; --text-secondary:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.10);
+    --series-1:#3987e5; --o1:#184f95; --o2:#1c5cab; --o3:#256abf; --o4:#2a78d6; --o5:#3987e5; --o6:#5598e7; --o7:#86b6ef;
+    --success-text:#0ca30c;
+  }}
+  :root[data-theme="dark"] .viz-root{
+    color-scheme:dark;
+    --page:#0d0d0d; --surface-1:#1a1a19; --text-primary:#fff; --text-secondary:#c3c2b7;
+    --muted:#898781; --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.10);
+    --series-1:#3987e5; --o1:#184f95; --o2:#1c5cab; --o3:#256abf; --o4:#2a78d6; --o5:#3987e5; --o6:#5598e7; --o7:#86b6ef;
+    --success-text:#0ca30c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--page);color:var(--text-primary)}
+  .viz-root{background:var(--page);color:var(--text-primary);min-height:100vh}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 26px;border-bottom:1px solid var(--border)}
+  header h1{font-size:18px;margin:0;font-weight:650}
+  header .sub{font-size:12.5px;color:var(--text-secondary)}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 26px 60px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+  .tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .tile .k{font-size:12.5px;color:var(--text-secondary);margin-bottom:8px;letter-spacing:.01em}
+  .tile .v{font-size:30px;font-weight:660;line-height:1.05}
+  .tile .d{font-size:12.5px;margin-top:6px;color:var(--text-secondary)}
+  .tile .d.good{color:var(--success-text);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+  .card h2{font-size:14px;margin:0 0 2px;font-weight:620}
+  .card .cap{font-size:12px;color:var(--muted);margin-bottom:12px}
+  svg{display:block;width:100%;overflow:visible}
+  text{font-family:inherit}
+  .axis{fill:var(--muted);font-size:11px}
+  .axis-tab{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+  .val{fill:var(--text-secondary);font-size:11px;font-variant-numeric:tabular-nums}
+  .lbl{fill:var(--text-primary);font-size:12px}
+  .btn{border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:11px;font-size:12px;font-weight:600}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);margin-top:8px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .alert-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .tip{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+       padding:7px 10px;font-size:12px;color:var(--text-primary);box-shadow:0 4px 14px rgba(0,0,0,.12);opacity:0;transition:opacity .1s;z-index:20}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  table.tbl th,table.tbl td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
+  table.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .foot{font-size:11.5px;color:var(--muted);margin-top:20px}
+</style>
+</head>
+<body>
+<div class="viz-root">
+  <header>
+    <div>
+      <h1>Albsale Vlora — Order-to-Cash Analytics &amp; Monitoring</h1>
+      <div class="sub">SAP S/4HANA · Integration Suite · HANA Cloud · AEM · <span id="src">Beispieldaten</span> · <span id="ts"></span></div>
+    </div>
+    <button class="btn" id="themeBtn">◐ Thema</button>
+  </header>
+  <div class="wrap">
+    <div class="tiles" id="tiles"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>O2C Status Funnel</h2>
+        <div class="cap">Anzahl Bestellungen je Prozessschritt (geordnet)</div>
+        <div id="funnel"></div>
+      </div>
+      <div class="card">
+        <h2>Umsatz je Monat</h2>
+        <div class="cap">Fakturierter Wert (EUR) nach Rechnungsdatum</div>
+        <div id="revenue"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Top Produkte nach Wert</h2>
+        <div class="cap">Summe Auftragswert (EUR)</div>
+        <div id="products"></div>
+      </div>
+      <div class="card">
+        <h2>Integrations-Monitoring (AEM)</h2>
+        <div class="cap">Offene Alerts &amp; Zustellung</div>
+        <div id="alerts"></div>
+      </div>
+    </div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+// ---- Beispiel-Daten (Fallback). Bei Hosting unter erp/public/ wird api/analytics/kpis.php geladen. ----
+const SAMPLE = {
+  generatedAt: "2026-08-20T12:00:00+02:00",
+  headline: { total_orders: 24, total_value: 61240, paid_orders: 9, on_time_pct: 87.5, open_ar: 18830, collected: 32110 },
+  statusFunnel: [
+    {status:"NEW",orders:24,value:61240},{status:"SENT",orders:22,value:57460},
+    {status:"CONFIRMED",orders:20,value:52130},{status:"GOODS_ISSUED",orders:17,value:44980},
+    {status:"DELIVERED",orders:15,value:40120},{status:"INVOICED",orders:13,value:35470},
+    {status:"PAID",orders:9,value:24120}
+  ],
+  revenueMonthly: [
+    {y:2026,m:6,invoiced_value:9820,invoices:4},{y:2026,m:7,invoiced_value:14360,invoices:6},
+    {y:2026,m:8,invoiced_value:11290,invoices:5}
+  ],
+  topProducts: [
+    {saltcode:651123,title:"Geräuchertes Salz",orders:3,qty:9,value:14870},
+    {saltcode:456124,title:"Hochwertiges Korallensalz",orders:4,qty:14,value:12680},
+    {saltcode:13455,title:"Jodiertes Speisesalz",orders:6,qty:120,value:11510},
+    {saltcode:654323,title:"Laborsalz",orders:2,qty:5,value:9430},
+    {saltcode:35345,title:"Rohes Meersalz",orders:5,qty:60,value:7860},
+    {saltcode:587564,title:"Gemahlenes Steinsalz",orders:4,qty:210,value:4890}
+  ],
+  alerts: { critical: 1, warning: 3 }
+};
+const MONTHS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const eur=n=>new Intl.NumberFormat("de-DE",{maximumFractionDigits:0}).format(n)+" €";
+const num=n=>new Intl.NumberFormat("de-DE").format(n);
+const tip=document.getElementById('tip');
+function showTip(html,e){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+function render(D){
+  document.getElementById('ts').textContent = "Stand: "+new Date(D.generatedAt).toLocaleString("de-DE");
+  // KPI tiles
+  const h=D.headline;
+  const tiles=[
+    {k:"Bestellungen gesamt",v:num(h.total_orders)},
+    {k:"Auftragswert gesamt",v:eur(h.total_value)},
+    {k:"Bezahlt",v:num(h.paid_orders),d:"von "+num(h.total_orders)+" Aufträgen"},
+    {k:"On-Time Delivery",v:(h.on_time_pct??0)+" %",cls:(h.on_time_pct>=85?"good":"")},
+    {k:"Offene Forderungen (A/R)",v:eur(h.open_ar)},
+    {k:"Eingenommen",v:eur(h.collected),cls:"good"}
+  ];
+  document.getElementById('tiles').innerHTML=tiles.map(t=>
+    `<div class="tile"><div class="k">${t.k}</div><div class="v">${t.v}</div>${t.d?`<div class="d ${t.cls||''}">${t.d}</div>`:(t.cls?`<div class="d ${t.cls}">▲ gut</div>`:'')}</div>`).join('');
+
+  drawFunnel(D.statusFunnel);
+  drawRevenue(D.revenueMonthly);
+  drawProducts(D.topProducts);
+  drawAlerts(D.alerts);
+
+  document.getElementById('foot').innerHTML =
+    "Quellen: FACT_O2C_ORDER (HANA Cloud) · v_kpi_* Views · integration_alert. "+
+    "On-Time = Warenausgang ≤ 5 Tage nach Bestellung. Diese Ansicht ist eigenständig; unter erp/public/ lädt sie Live-KPIs aus api/analytics/kpis.php.";
+}
+
+// ---- Ordinal blue ramp funnel (horizontal bars, geordnet) ----
+function drawFunnel(rows){
+  const ramp=["--o1","--o2","--o3","--o4","--o5","--o6","--o7"];
+  const W=520,rowH=34,padL=118,padR=54,H=rows.length*rowH+10;
+  const max=Math.max(...rows.map(r=>r.orders));
+  const bw=W-padL-padR;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Status Funnel">`;
+  rows.forEach((r,i)=>{
+    const y=i*rowH+6, w=Math.max(2,bw*r.orders/max);
+    const c=`var(${ramp[Math.min(i,ramp.length-1)]})`;
+    s+=`<text class="lbl" x="${padL-8}" y="${y+rowH/2}" text-anchor="end" dominant-baseline="middle">${r.status}</text>`;
+    s+=`<rect x="${padL}" y="${y+6}" width="${w}" height="${rowH-14}" rx="4" fill="${c}"
+         data-t="${r.status}: ${num(r.orders)} Aufträge · ${eur(r.value)}"></rect>`;
+    s+=`<text class="val" x="${padL+w+6}" y="${y+rowH/2}" dominant-baseline="middle">${num(r.orders)}</text>`;
+  });
+  s+=`</svg>`;
+  const el=document.getElementById('funnel'); el.innerHTML=s;
+  bindBars(el);
+}
+
+// ---- Revenue: single-series blue line + area, months ----
+function drawRevenue(rows){
+  const W=520,H=210,padL=52,padR=14,padT=14,padB=28;
+  const xs=rows.map((_,i)=>i), max=Math.max(...rows.map(r=>r.invoiced_value))*1.15||1;
+  const iw=W-padL-padR, ih=H-padT-padB;
+  const X=i=>padL+(rows.length<=1?iw/2:iw*i/(rows.length-1));
+  const Y=v=>padT+ih-ih*v/max;
+  let grid='', ticks=4;
+  for(let t=0;t<=ticks;t++){const v=max*t/ticks,y=Y(v);
+    grid+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    grid+=`<text class="axis-tab" x="${padL-8}" y="${y}" text-anchor="end" dominant-baseline="middle">${Math.round(v/1000)}k</text>`;}
+  let pts=rows.map((r,i)=>`${X(i)},${Y(r.invoiced_value)}`).join(' ');
+  let area=`${padL},${Y(0)} `+pts+` ${X(rows.length-1)},${Y(0)}`;
+  let dots='',xlab='';
+  rows.forEach((r,i)=>{
+    dots+=`<circle cx="${X(i)}" cy="${Y(r.invoiced_value)}" r="4.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"
+      data-t="${MONTHS[r.m-1]} ${r.y}: ${eur(r.invoiced_value)} · ${r.invoices} Rechnungen"></circle>`;
+    xlab+=`<text class="axis" x="${X(i)}" y="${H-8}" text-anchor="middle">${MONTHS[r.m-1]}</text>`;
+  });
+  const el=document.getElementById('revenue');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Umsatz je Monat">
+    ${grid}<polygon points="${area}" fill="var(--series-1)" opacity="0.10"/>
+    <polyline points="${pts}" fill="none" stroke="var(--series-1)" stroke-width="2"/>${dots}${xlab}</svg>`;
+  bindBars(el);
+}
+
+// ---- Top products: horizontal sequential-blue bars ----
+function drawProducts(rows){
+  const W=520,rowH=30,padL=150,padR=64,H=rows.length*rowH+8;
+  const max=Math.max(...rows.map(r=>r.value)), bw=W-padL-padR;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Top Produkte">`;
+  rows.forEach((r,i)=>{
+    const y=i*rowH+4,w=Math.max(2,bw*r.value/max);
+    s+=`<text class="lbl" x="${padL-8}" y="${y+rowH/2}" text-anchor="end" dominant-baseline="middle">${r.title.length>18?r.title.slice(0,17)+'…':r.title}</text>`;
+    s+=`<rect x="${padL}" y="${y+5}" width="${w}" height="${rowH-12}" rx="4" fill="var(--series-1)"
+         data-t="${r.title}: ${eur(r.value)} · ${num(r.orders)} Aufträge · ${num(r.qty)} t"></rect>`;
+    s+=`<text class="val" x="${padL+w+6}" y="${y+rowH/2}" dominant-baseline="middle">${eur(r.value)}</text>`;
+  });
+  s+=`</svg>`;
+  const el=document.getElementById('products'); el.innerHTML=s; bindBars(el);
+}
+
+// ---- Alerts (status colors + icon + label) ----
+function drawAlerts(a){
+  const rows=[
+    {sev:"CRITICAL",n:a.critical||0,c:"--critical",ic:"⛔"},
+    {sev:"WARNING",n:a.warning||0,c:"--warning",ic:"⚠"},
+    {sev:"OK",n:0,c:"--good",ic:"✔"}
+  ];
+  let html=rows.map(r=>`<div class="alert-row">
+     <span class="badge" style="background:var(${r.c});color:#fff">${r.ic} ${r.sev}</span>
+     <span style="font-variant-numeric:tabular-nums;font-weight:600">${r.n}</span>
+     <span style="color:var(--text-secondary)">${r.sev==='CRITICAL'?'offene kritische Alerts (E-Mail an Ops)':r.sev==='WARNING'?'Warnungen (Retry/Backoff aktiv)':'Systeme nominal'}</span>
+   </div>`).join('');
+  html+=`<table class="tbl"><thead><tr><th>Szenario</th><th>Mechanismus</th></tr></thead><tbody>
+    <tr><td>O2C-Order-Consumer-DLQ</td><td>JMS Retry 5× + Dead-Letter Store</td></tr>
+    <tr><td>Outbox Dispatcher</td><td>Backoff 30→480s, dann DEAD</td></tr>
+    <tr><td>Inbound Token</td><td>hash_equals (401 bei Fehler)</td></tr></tbody></table>`;
+  document.getElementById('alerts').innerHTML=html;
+}
+
+function bindBars(el){
+  el.querySelectorAll('[data-t]').forEach(m=>{
+    m.addEventListener('mousemove',e=>showTip(m.getAttribute('data-t'),e));
+    m.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// theme toggle
+document.getElementById('themeBtn').onclick=()=>{
+  const r=document.documentElement;
+  r.setAttribute('data-theme', r.getAttribute('data-theme')==='dark'?'light':'dark');
+};
+
+// try live, fallback to sample
+(function(){
+  document.getElementById('ts').textContent='';
+  render(SAMPLE);
+  fetch('api/analytics/kpis.php',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(d&&d.headline){document.getElementById('src').textContent='Live (ERP)';render(d);}
+  }).catch(()=>{});
+})();
+</script>
+</body>
+</html>
