@@ -201,6 +201,8 @@ Analytics
 
 ## 🌟 Monitoring Dashboard
 
+<img width="572" height="500" alt="image" src="https://github.com/user-attachments/assets/0f5b93bc-4656-4488-8875-493cb35deb2c" />
+
 - **Purpose:** Collects integration alerts, persists them to ERP and notifies Ops of critical ones.
 - **Business process:** Monitoring/Alerting (Phase 5).
 - **Technology:** SAP CI/CPI + Mail.
