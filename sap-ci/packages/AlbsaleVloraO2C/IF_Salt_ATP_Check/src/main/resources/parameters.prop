@@ -1,0 +1,3 @@
+# IF_Salt_ATP_Check
+s4_odata_atp_url=https\://s4host\:44300/sap/opu/odata/sap/API_AVAILABILITY_INFORMATION_SRV
+s4_odata_credential=S4_ODATA_USER

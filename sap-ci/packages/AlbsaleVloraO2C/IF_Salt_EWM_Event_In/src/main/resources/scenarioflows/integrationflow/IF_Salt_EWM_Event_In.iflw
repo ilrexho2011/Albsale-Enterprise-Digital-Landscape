@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_EWM_Event_In.iflw · Phase 4 (Warehouse/EWM)
+  INBOUND: S/4 EWM (SHPCON/WHSCON goods issue) -> CI -> ERP receive_warehouse.php.
+  Sender: IDoc /salt/ewm   Receiver: HTTP -> receive_warehouse.php (X-Inbound-Token)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_EWM_In">
+
+  <bpmn2:collaboration id="Collab_EWM" name="IF_Salt_EWM_Event_In">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender"   ifl:type="EndpointSender"   name="S4HANA_EWM"/>
+    <bpmn2:participant id="P_Receiver" ifl:type="EndpointReceiver" name="ERP_Salt"/>
+    <bpmn2:participant id="P_Proc"     ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_EWM"/>
+
+    <bpmn2:messageFlow id="MF_Sender_IDoc" name="IDoc" sourceRef="P_Sender" targetRef="Start_E">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>IDOC</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/ewm</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_Receiver_HTTP" name="HTTP" sourceRef="End_E" targetRef="P_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>httpAddressWithoutQuery</key><value>{{erp_warehouse_url}}</value></ifl:property>
+        <ifl:property><key>httpMethod</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_EWM" name="Integration Process">
+    <bpmn2:startEvent id="Start_E" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>e1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="MM_Wh" name="Map SHPCON to Warehouse" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/SHPCON_to_Warehouse.xsl</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>e1</bpmn2:incoming><bpmn2:outgoing>e2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="CM_Token" name="Load Inbound Token" ifl:activityType="Enricher">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;erp_inbound_token&lt;/name&gt;&lt;value&gt;{{erp_inbound_token}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>e2</bpmn2:incoming><bpmn2:outgoing>e3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="SC_Ctx" name="Set Inbound Context" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>setInboundContext.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>e3</bpmn2:incoming><bpmn2:outgoing>e4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="End_E" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>e4</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="e1" sourceRef="Start_E"  targetRef="MM_Wh"/>
+    <bpmn2:sequenceFlow id="e2" sourceRef="MM_Wh"    targetRef="CM_Token"/>
+    <bpmn2:sequenceFlow id="e3" sourceRef="CM_Token" targetRef="SC_Ctx"/>
+    <bpmn2:sequenceFlow id="e4" sourceRef="SC_Ctx"   targetRef="End_E"/>
+  </bpmn2:process>
+</bpmn2:definitions>

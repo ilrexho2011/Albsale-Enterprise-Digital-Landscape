@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_FI_Event_In.iflw · Phase 4 (Finance/FI)
+  INBOUND: S/4 FI (posting i faturës / clearing pagese) -> CI -> ERP receive_finance.php.
+  Sender: IDoc/HTTP /salt/fi   Receiver: HTTP -> receive_finance.php (X-Inbound-Token)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_FI_In">
+
+  <bpmn2:collaboration id="Collab_FI" name="IF_Salt_FI_Event_In">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender"   ifl:type="EndpointSender"   name="S4HANA_FI"/>
+    <bpmn2:participant id="P_Receiver" ifl:type="EndpointReceiver" name="ERP_Salt"/>
+    <bpmn2:participant id="P_Proc"     ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_FI"/>
+
+    <bpmn2:messageFlow id="MF_Sender" name="HTTPS" sourceRef="P_Sender" targetRef="Start_F">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/fi</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_Receiver_HTTP" name="HTTP" sourceRef="End_F" targetRef="P_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>httpAddressWithoutQuery</key><value>{{erp_finance_url}}</value></ifl:property>
+        <ifl:property><key>httpMethod</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_FI" name="Integration Process">
+    <bpmn2:startEvent id="Start_F" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>f1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="MM_Fi" name="Map FI Event to Canonical" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/FIEvent_to_Canonical.xsl</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>f1</bpmn2:incoming><bpmn2:outgoing>f2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="CM_Token" name="Load Inbound Token" ifl:activityType="Enricher">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;erp_inbound_token&lt;/name&gt;&lt;value&gt;{{erp_inbound_token}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>f2</bpmn2:incoming><bpmn2:outgoing>f3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="SC_Ctx" name="Set Inbound Context" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>setInboundContext.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>f3</bpmn2:incoming><bpmn2:outgoing>f4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="End_F" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>f4</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="f1" sourceRef="Start_F"  targetRef="MM_Fi"/>
+    <bpmn2:sequenceFlow id="f2" sourceRef="MM_Fi"    targetRef="CM_Token"/>
+    <bpmn2:sequenceFlow id="f3" sourceRef="CM_Token" targetRef="SC_Ctx"/>
+    <bpmn2:sequenceFlow id="f4" sourceRef="SC_Ctx"   targetRef="End_F"/>
+  </bpmn2:process>
+</bpmn2:definitions>

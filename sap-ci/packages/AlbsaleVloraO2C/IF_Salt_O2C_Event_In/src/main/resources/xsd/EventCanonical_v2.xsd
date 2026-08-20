@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EventCanonical_v2.xsd  ·  Phase 3
+  Zgjeron eventin O2C me detaje të plota DELVRY03 (dërgesa) dhe INVOIC02 (faturë):
+  artikuj, sasi, shuma, taksa, data, tracking. E prapakompatibël me v1 (ORDRSP i njëjtë).
+  Elementet dalëse janë në NAMESPACE DEFAULT (xmlns=...) që SimpleXML te receive_event.php t'i lexojë.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:element name="OrderEvent">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"       type="o2c:EvtHeaderType"/>
+        <xs:element name="Reference"    type="o2c:EvtReferenceType"/>
+        <xs:element name="Confirmation" type="o2c:ConfirmationType" minOccurs="0"/>
+        <xs:element name="Despatch"     type="o2c:DespatchType"     minOccurs="0"/>
+        <xs:element name="Invoice"      type="o2c:InvoiceType"      minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="EvtHeaderType">
+    <xs:sequence>
+      <xs:element name="DocumentType"  type="o2c:DocTypeEnum"/>
+      <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+      <xs:element name="S4OrderId"     type="xs:string" minOccurs="0"/>
+      <xs:element name="EventDate"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Message"       type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="DocTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ORDRSP"/>
+      <xs:enumeration value="DESADV"/>
+      <xs:enumeration value="INVOIC"/>
+      <xs:enumeration value="REJECT"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="EvtReferenceType">
+    <xs:sequence>
+      <xs:element name="CustomerRef"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="SaltOrderRef" type="xs:integer" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfirmationType">
+    <xs:sequence>
+      <xs:element name="ConfirmedQuantity" type="xs:decimal"/>
+      <xs:element name="ConfirmedDate"     type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ===================== DELVRY03 (i plotë) ===================== -->
+  <xs:complexType name="DespatchType">
+    <xs:sequence>
+      <xs:element name="DeliveryNo"   type="xs:string"/>
+      <xs:element name="DeliveryDate" type="xs:string" minOccurs="0"/>
+      <xs:element name="Incoterms"    type="xs:string" minOccurs="0"/>
+      <xs:element name="Carrier"      type="xs:string" minOccurs="0"/>
+      <xs:element name="TrackingNo"   type="xs:string" minOccurs="0"/>
+      <xs:element name="ShipToParty"  type="xs:string" minOccurs="0"/>
+      <xs:element name="TotalGrossWeight" type="xs:string" minOccurs="0"/>
+      <xs:element name="WeightUnit"   type="xs:string" minOccurs="0"/>
+      <xs:element name="Items"        type="o2c:DespatchItemsType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DespatchItemsType">
+    <xs:sequence>
+      <xs:element name="Item" type="o2c:DespatchItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DespatchItemType">
+    <xs:sequence>
+      <xs:element name="LineNo"            type="xs:string" minOccurs="0"/>
+      <xs:element name="ProductRef"        type="xs:string" minOccurs="0"/>
+      <xs:element name="Description"       type="xs:string" minOccurs="0"/>
+      <xs:element name="DeliveredQuantity" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Unit"              type="xs:string" minOccurs="0"/>
+      <xs:element name="Batch"             type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ===================== INVOIC02 (i plotë) ===================== -->
+  <xs:complexType name="InvoiceType">
+    <xs:sequence>
+      <xs:element name="InvoiceNo"   type="xs:string"/>
+      <xs:element name="InvoiceDate" type="xs:string" minOccurs="0"/>
+      <xs:element name="DueDate"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Currency"    type="xs:string" minOccurs="0"/>
+      <xs:element name="NetAmount"   type="xs:decimal" minOccurs="0"/>
+      <xs:element name="TaxAmount"   type="xs:decimal" minOccurs="0"/>
+      <xs:element name="GrossAmount" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Items"       type="o2c:InvoiceItemsType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="InvoiceItemsType">
+    <xs:sequence>
+      <xs:element name="Item" type="o2c:InvoiceItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="InvoiceItemType">
+    <xs:sequence>
+      <xs:element name="LineNo"     type="xs:string" minOccurs="0"/>
+      <xs:element name="ProductRef" type="xs:string" minOccurs="0"/>
+      <xs:element name="Description" type="xs:string" minOccurs="0"/>
+      <xs:element name="Quantity"   type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Unit"       type="xs:string" minOccurs="0"/>
+      <xs:element name="NetValue"   type="xs:decimal" minOccurs="0"/>
+      <xs:element name="TaxRate"    type="xs:decimal" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

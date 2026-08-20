@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FinanceEvent.xsd · Phase 4 (Finance / FI posting)
+  Eventi financiar që CI POST-on te ERP (receive_finance.php): posting kontabël i faturës
+  (FI_POSTED) dhe clearing/pagesë (PAYMENT_CLEARED). Namespace DEFAULT.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:element name="FinanceEvent">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"     type="o2c:FiHeaderType"/>
+        <xs:element name="Reference"  type="o2c:FiReferenceType"/>
+        <xs:element name="Accounting" type="o2c:AccountingType" minOccurs="0"/>
+        <xs:element name="Payment"    type="o2c:PaymentType"    minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="FiHeaderType">
+    <xs:sequence>
+      <xs:element name="EventType"     type="o2c:FiEventEnum"/>
+      <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+      <xs:element name="S4OrderId"     type="xs:string" minOccurs="0"/>
+      <xs:element name="EventDate"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Message"       type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="FiEventEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="FI_POSTED"/>
+      <xs:enumeration value="PAYMENT_CLEARED"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="FiReferenceType">
+    <xs:sequence>
+      <xs:element name="CustomerRef"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="SaltOrderRef" type="xs:integer" minOccurs="0"/>
+      <xs:element name="InvoiceNo"    type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AccountingType">
+    <xs:sequence>
+      <xs:element name="AccountingDoc" type="xs:string"  minOccurs="0"/>
+      <xs:element name="CompanyCode"   type="xs:string"  minOccurs="0"/>
+      <xs:element name="FiscalYear"    type="xs:string"  minOccurs="0"/>
+      <xs:element name="PostingDate"   type="xs:string"  minOccurs="0"/>
+      <xs:element name="DocumentType"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="Amount"        type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Currency"      type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PaymentType">
+    <xs:sequence>
+      <xs:element name="PaymentRef"     type="xs:string"  minOccurs="0"/>
+      <xs:element name="PaymentDate"    type="xs:string"  minOccurs="0"/>
+      <xs:element name="Amount"         type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Currency"       type="xs:string"  minOccurs="0"/>
+      <xs:element name="ClearingDoc"    type="xs:string"  minOccurs="0"/>
+      <xs:element name="ClearingStatus" type="o2c:ClearingEnum" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="ClearingEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="OPEN"/>
+      <xs:enumeration value="CLEARED"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

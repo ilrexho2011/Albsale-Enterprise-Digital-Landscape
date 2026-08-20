@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WarehouseEvent.xsd · Phase 4 (EWM / Warehouse)
+  Eventi i magazinës që CI POST-on te ERP (receive_warehouse.php): picking, packing (HU),
+  dhe goods issue. Namespace DEFAULT (që SimpleXML te ERP t'i lexojë fushat).
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:element name="WarehouseEvent">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"        type="o2c:WhHeaderType"/>
+        <xs:element name="Reference"     type="o2c:WhReferenceType"/>
+        <xs:element name="GoodsIssue"    type="o2c:GoodsIssueType"    minOccurs="0"/>
+        <xs:element name="HandlingUnits" type="o2c:HandlingUnitsType" minOccurs="0"/>
+        <xs:element name="Tasks"         type="o2c:WhTasksType"       minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="WhHeaderType">
+    <xs:sequence>
+      <xs:element name="EventType"     type="o2c:WhEventEnum"/>
+      <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+      <xs:element name="DeliveryNo"    type="xs:string" minOccurs="0"/>
+      <xs:element name="S4OrderId"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Warehouse"     type="xs:string" minOccurs="0"/>
+      <xs:element name="EventDate"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Message"       type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="WhEventEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PICKED"/>
+      <xs:enumeration value="PACKED"/>
+      <xs:enumeration value="GOODS_ISSUED"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="WhReferenceType">
+    <xs:sequence>
+      <xs:element name="CustomerRef"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="SaltOrderRef" type="xs:integer" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="GoodsIssueType">
+    <xs:sequence>
+      <xs:element name="MovementType"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="GIDate"        type="xs:string"  minOccurs="0"/>
+      <xs:element name="TotalQuantity" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Unit"          type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="HandlingUnitsType">
+    <xs:sequence><xs:element name="HandlingUnit" type="o2c:HandlingUnitType" maxOccurs="unbounded"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="HandlingUnitType">
+    <xs:sequence>
+      <xs:element name="HuId"        type="xs:string"  minOccurs="0"/>
+      <xs:element name="PackMaterial" type="xs:string" minOccurs="0"/>
+      <xs:element name="GrossWeight" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="WeightUnit"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="TrackingNo"  type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="WhTasksType">
+    <xs:sequence><xs:element name="Task" type="o2c:WhTaskType" maxOccurs="unbounded"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="WhTaskType">
+    <xs:sequence>
+      <xs:element name="TaskId"         type="xs:string"  minOccurs="0"/>
+      <xs:element name="ProductRef"     type="xs:string"  minOccurs="0"/>
+      <xs:element name="PickedQuantity" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Unit"           type="xs:string"  minOccurs="0"/>
+      <xs:element name="SourceBin"      type="xs:string"  minOccurs="0"/>
+      <xs:element name="DestBin"        type="xs:string"  minOccurs="0"/>
+      <xs:element name="Status"         type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

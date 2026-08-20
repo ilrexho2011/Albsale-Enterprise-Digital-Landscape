@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: IF_Salt_O2C_Event_In; singleton:=true
 Bundle-Name: IF_Salt_O2C_Event_In
-Bundle-Version: 1.0.0
+Bundle-Version: 2.0.0
 SAP-BundleType: IntegrationFlow
 SAP-NodeType: IFLMAP
 SAP-RuntimeProfile: iflmap

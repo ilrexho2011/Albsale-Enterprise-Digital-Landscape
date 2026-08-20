@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_Monitoring_Collector.iflw · Phase 5 (AEM Monitoring / Alerting)
+  Mbledh alertet e integrimit (dërguar nga exception subprocess-et e iFlow-ve të tjera,
+  ose nga një skanim MPL), i shkruan te ERP (monitor_alert.php) dhe dërgon email për ato
+  kritike. Sender: HTTPS /salt/alert   Receiver 1: HTTP -> ERP   Receiver 2: Mail (kushtëzuar)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_Monitor">
+  <bpmn2:collaboration id="Collab_Mon" name="IF_Salt_Monitoring_Collector">
+    <bpmn2:extensionElements><ifl:property><key>log</key><value>All events</value></ifl:property></bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender"  ifl:type="EndpointSender"   name="CI_Exception_or_Scan"/>
+    <bpmn2:participant id="P_ERP"     ifl:type="EndpointReceiver" name="ERP_Monitor"/>
+    <bpmn2:participant id="P_Mail"    ifl:type="EndpointReceiver" name="Mail_Ops"/>
+    <bpmn2:participant id="P_Proc"    ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Mon"/>
+
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_M">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/alert</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_ERP" name="HTTP" sourceRef="Send_ERP" targetRef="P_ERP">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>httpAddressWithoutQuery</key><value>{{erp_monitor_url}}</value></ifl:property>
+        <ifl:property><key>httpMethod</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_Mail" name="Mail" sourceRef="Send_Mail" targetRef="P_Mail">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>Mail</value></ifl:property>
+        <ifl:property><key>address</key><value>{{smtp_host}}</value></ifl:property>
+        <ifl:property><key>mailTo</key><value>{{ops_email}}</value></ifl:property>
+        <ifl:property><key>subject</key><value>[ALBSALE O2C] ${header.alertSeverity}: ${header.alertScenario}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_Mon" name="Integration Process">
+    <bpmn2:startEvent id="Start_M" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>m1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="SC_Norm" name="Normalize Alert" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>normalizeAlert.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>m1</bpmn2:incoming><bpmn2:outgoing>m2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <!-- Multicast: shkruaj te ERP gjithmonë, dërgo email vetëm për kritike -->
+    <bpmn2:callActivity id="Send_ERP" name="Persist to ERP" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>m2</bpmn2:incoming><bpmn2:outgoing>m3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:exclusiveGateway id="GW_Sev" name="Critical?">
+      <bpmn2:incoming>m3</bpmn2:incoming><bpmn2:outgoing>g_mail</bpmn2:outgoing><bpmn2:outgoing>g_end</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:callActivity id="Send_Mail" name="Email Ops" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>g_mail</bpmn2:incoming><bpmn2:outgoing>m4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="End_M" name="End"><bpmn2:messageEventDefinition/>
+      <bpmn2:incoming>m4</bpmn2:incoming><bpmn2:incoming>g_end</bpmn2:incoming></bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="m1" sourceRef="Start_M"  targetRef="SC_Norm"/>
+    <bpmn2:sequenceFlow id="m2" sourceRef="SC_Norm"  targetRef="Send_ERP"/>
+    <bpmn2:sequenceFlow id="m3" sourceRef="Send_ERP" targetRef="GW_Sev"/>
+    <bpmn2:sequenceFlow id="g_mail" sourceRef="GW_Sev" targetRef="Send_Mail">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${header.alertSeverity = 'CRITICAL'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="g_end" sourceRef="GW_Sev" targetRef="End_M" ifl:type="DefaultFlow"/>
+    <bpmn2:sequenceFlow id="m4" sourceRef="Send_Mail" targetRef="End_M"/>
+  </bpmn2:process>
+</bpmn2:definitions>

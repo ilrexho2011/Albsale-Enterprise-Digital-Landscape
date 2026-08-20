@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_Event_Publish.iflw · Phase 5 (AEM / Advanced Event Mesh)
+  Publikon çdo event O2C (statusi i porosisë) në një topik Event Mesh për konsum
+  event-driven nga monitorimi/analitika. Topiku: albsale/o2c/{eventType}.
+  Sender: HTTPS /salt/event/publish   Receiver: AMQP (Advanced Event Mesh)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_Event_Publish">
+  <bpmn2:collaboration id="Collab_Pub" name="IF_Salt_Event_Publish">
+    <bpmn2:extensionElements><ifl:property><key>log</key><value>All events</value></ifl:property></bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender" ifl:type="EndpointSender"   name="Source_ERP_or_CI"/>
+    <bpmn2:participant id="P_AEM"    ifl:type="EndpointReceiver" name="AdvancedEventMesh"/>
+    <bpmn2:participant id="P_Proc"   ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Pub"/>
+
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_P">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/event/publish</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_AMQP" name="AMQP" sourceRef="End_P" targetRef="P_AEM">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>AMQP</value></ifl:property>
+        <ifl:property><key>destinationType</key><value>Topic</value></ifl:property>
+        <ifl:property><key>destinationName</key><value>albsale/o2c/${header.eventTopic}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{aem_credential}}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_Pub" name="Integration Process">
+    <bpmn2:startEvent id="Start_P" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>p1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="SC_Topic" name="Derive Topic + Enrich" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>deriveTopic.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>p1</bpmn2:incoming><bpmn2:outgoing>p2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="End_P" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>p2</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="p1" sourceRef="Start_P"  targetRef="SC_Topic"/>
+    <bpmn2:sequenceFlow id="p2" sourceRef="SC_Topic" targetRef="End_P"/>
+  </bpmn2:process>
+</bpmn2:definitions>

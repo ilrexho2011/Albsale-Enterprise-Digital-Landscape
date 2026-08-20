@@ -1,0 +1,2 @@
+erp_extract_url=https\://localhost/erp/public/api/analytics/extract.php
+hana_jdbc_alias=HANA_CLOUD_ANALYTICS
