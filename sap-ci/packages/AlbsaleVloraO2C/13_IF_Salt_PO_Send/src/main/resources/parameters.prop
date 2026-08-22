@@ -1,0 +1,6 @@
+s4_logical_system=ZS4CLNT100
+s4_idoc_url=https\://s4host\:44300/sap/bc/idoc_xml
+s4_credential_alias=S4_IDOC_USER
+purch_org=1000
+purch_group=001
+po_type=NB

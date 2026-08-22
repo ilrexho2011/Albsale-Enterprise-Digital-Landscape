@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_Analytics_Replicate.iflw · Phase 5 (HANA Cloud analytics)
+  Në orar (Timer), tërheq të dhënat O2C nga ERP (JSON delta) dhe i shkruan/upsert në
+  SAP HANA Cloud (JDBC) në star schema (FACT_O2C_ORDER + dimensionet). Ushqen KPI views.
+  Start: Timer (çdo 15 min)   Source: HTTP ERP extract   Target: JDBC HANA Cloud
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_Analytics">
+  <bpmn2:collaboration id="Collab_An" name="IF_Salt_Analytics_Replicate">
+    <bpmn2:extensionElements><ifl:property><key>log</key><value>All events</value></ifl:property></bpmn2:extensionElements>
+    <bpmn2:participant id="P_ERP"  ifl:type="EndpointReceiver" name="ERP_Extract"/>
+    <bpmn2:participant id="P_HANA" ifl:type="EndpointReceiver" name="HANA_Cloud"/>
+    <bpmn2:participant id="P_Proc" ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_An"/>
+
+    <bpmn2:messageFlow id="MF_ERP" name="HTTP" sourceRef="RR_Extract" targetRef="P_ERP">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTP</value></ifl:property>
+        <ifl:property><key>httpAddressWithoutQuery</key><value>{{erp_extract_url}}</value></ifl:property>
+        <ifl:property><key>httpMethod</key><value>GET</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_HANA" name="JDBC" sourceRef="Write_HANA" targetRef="P_HANA">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>JDBC</value></ifl:property>
+        <ifl:property><key>jdbcDataSourceAlias</key><value>{{hana_jdbc_alias}}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_An" name="Integration Process">
+    <bpmn2:startEvent id="Start_A" name="Scheduler">
+      <bpmn2:extensionElements>
+        <ifl:property><key>schedulerType</key><value>Recurring</value></ifl:property>
+        <ifl:property><key>every</key><value>15</value></ifl:property>
+        <ifl:property><key>timeUnit</key><value>Minutes</value></ifl:property>
+      </bpmn2:extensionElements>
+      <bpmn2:timerEventDefinition/>
+      <bpmn2:outgoing>a1</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <bpmn2:callActivity id="CM_Since" name="Set Delta Watermark" ifl:activityType="Enricher">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;since&lt;/name&gt;&lt;value&gt;${property.lastRun}&lt;/value&gt;&lt;type&gt;expression&lt;/type&gt;&lt;/row&gt;</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a1</bpmn2:incoming><bpmn2:outgoing>a2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="RR_Extract" name="Extract O2C Delta (ERP)" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a2</bpmn2:incoming><bpmn2:outgoing>a3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="MM_ToRows" name="Map JSON to HANA Rows (JDBC XML)" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>mapToHanaUpsert.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a3</bpmn2:incoming><bpmn2:outgoing>a4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="Write_HANA" name="Upsert into HANA Cloud" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a4</bpmn2:incoming><bpmn2:outgoing>a5</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="End_A" name="End"><bpmn2:incoming>a5</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="a1" sourceRef="Start_A"    targetRef="CM_Since"/>
+    <bpmn2:sequenceFlow id="a2" sourceRef="CM_Since"   targetRef="RR_Extract"/>
+    <bpmn2:sequenceFlow id="a3" sourceRef="RR_Extract" targetRef="MM_ToRows"/>
+    <bpmn2:sequenceFlow id="a4" sourceRef="MM_ToRows"  targetRef="Write_HANA"/>
+    <bpmn2:sequenceFlow id="a5" sourceRef="Write_HANA" targetRef="End_A"/>
+  </bpmn2:process>
+</bpmn2:definitions>

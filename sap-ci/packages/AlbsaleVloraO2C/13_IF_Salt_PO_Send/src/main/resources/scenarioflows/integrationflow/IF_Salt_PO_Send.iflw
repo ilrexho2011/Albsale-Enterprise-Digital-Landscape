@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_PO_Send.iflw · Phase 6 (Procurement)
+  ERP (reorder_check) -> CI -> S/4HANA MM: krijim Purchase Order (IDoc PORDCR05).
+  Sender: HTTPS /salt/po   Receiver: IDoc S/4HANA
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_PO_Send">
+  <bpmn2:collaboration id="Collab_PO" name="IF_Salt_PO_Send">
+    <bpmn2:extensionElements>
+      <ifl:property><key>namespaceMapping</key><value>o2c=urn:albsale:o2c:canonical:1.0</value></ifl:property>
+      <ifl:property><key>log</key><value>All events</value></ifl:property>
+    </bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender"   ifl:type="EndpointSender"   name="ERP_Procurement"/>
+    <bpmn2:participant id="P_Receiver" ifl:type="EndpointReceiver" name="S4HANA_MM"/>
+    <bpmn2:participant id="P_Proc"     ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_PO"/>
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_PO">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/po</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_IDoc" name="IDoc" sourceRef="End_PO" targetRef="P_Receiver">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>IDOC</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_idoc_url}}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{s4_credential_alias}}</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+  <bpmn2:process id="Proc_PO" name="Integration Process">
+    <bpmn2:startEvent id="Start_PO" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>o1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="CM_Params" name="Set Purchasing Org" ifl:activityType="Enricher">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Enricher</value></ifl:property>
+        <ifl:property><key>propertyTable</key><value>&lt;row&gt;&lt;name&gt;p_rcvprn&lt;/name&gt;&lt;value&gt;{{s4_logical_system}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_ekorg&lt;/name&gt;&lt;value&gt;{{purch_org}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_ekgrp&lt;/name&gt;&lt;value&gt;{{purch_group}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;&lt;row&gt;&lt;name&gt;p_bsart&lt;/name&gt;&lt;value&gt;{{po_type}}&lt;/value&gt;&lt;type&gt;constant&lt;/type&gt;&lt;/row&gt;</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>o1</bpmn2:incoming><bpmn2:outgoing>o2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="MM_PORDCR" name="Map Canonical to PORDCR" ifl:activityType="XSLTMapping">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>XSLTMapping</value></ifl:property>
+        <ifl:property><key>mappingPath</key><value>mapping/Canonical_to_PORDCR.xsl</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>o2</bpmn2:incoming><bpmn2:outgoing>o3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="End_PO" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>o3</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="o1" sourceRef="Start_PO"  targetRef="CM_Params"/>
+    <bpmn2:sequenceFlow id="o2" sourceRef="CM_Params" targetRef="MM_PORDCR"/>
+    <bpmn2:sequenceFlow id="o3" sourceRef="MM_PORDCR" targetRef="End_PO"/>
+  </bpmn2:process>
+</bpmn2:definitions>

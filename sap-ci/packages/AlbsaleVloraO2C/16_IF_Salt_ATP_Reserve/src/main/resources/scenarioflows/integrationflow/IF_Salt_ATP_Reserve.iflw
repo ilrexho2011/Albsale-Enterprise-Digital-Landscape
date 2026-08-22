@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_ATP_Reserve.iflw · Phase 6 (aATP me rezervim real / BOP)
+  ERP kërkon rezervim aATP për një porosi. CI thërret aATP-në e S/4 (Advanced ATP - action
+  që rezervon/alokon stok), dhe kthen {reservationId, confirmedQuantity, confirmedDate, backorderQty}.
+  Sender: HTTPS POST /salt/atp/reserve   Receiver: OData (aATP action, POST)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd" id="Definitions_ATP_Reserve">
+  <bpmn2:collaboration id="Collab_Res" name="IF_Salt_ATP_Reserve">
+    <bpmn2:extensionElements><ifl:property><key>log</key><value>All events</value></ifl:property></bpmn2:extensionElements>
+    <bpmn2:participant id="P_Sender" ifl:type="EndpointSender"   name="ERP_Salt"/>
+    <bpmn2:participant id="P_OData"  ifl:type="EndpointReceiver" name="S4HANA_aATP_BOP"/>
+    <bpmn2:participant id="P_Proc"   ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_Res"/>
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="St">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/atp/reserve</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+    <bpmn2:messageFlow id="MF_OData" name="OData" sourceRef="RR" targetRef="P_OData">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HCIOData</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_odata_atp_url}}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{s4_odata_credential}}</value></ifl:property>
+        <ifl:property><key>operation</key><value>Function Import(POST)</value></ifl:property>
+        <ifl:property><key>resourcePath</key><value>ConfirmAndReserve</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+  <bpmn2:process id="Proc_Res" name="Integration Process">
+    <bpmn2:startEvent id="St" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>r1</bpmn2:outgoing></bpmn2:startEvent>
+    <bpmn2:callActivity id="SCq" name="Build Reserve Request" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>buildReserve.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>r1</bpmn2:incoming><bpmn2:outgoing>r2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="RR" name="aATP Confirm+Reserve (OData)" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>r2</bpmn2:incoming><bpmn2:outgoing>r3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:callActivity id="SCm" name="Map Reservation Result" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>mapReserve.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>r3</bpmn2:incoming><bpmn2:outgoing>r4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:endEvent id="En" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>r4</bpmn2:incoming></bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="r1" sourceRef="St"  targetRef="SCq"/>
+    <bpmn2:sequenceFlow id="r2" sourceRef="SCq" targetRef="RR"/>
+    <bpmn2:sequenceFlow id="r3" sourceRef="RR"  targetRef="SCm"/>
+    <bpmn2:sequenceFlow id="r4" sourceRef="SCm" targetRef="En"/>
+  </bpmn2:process>
+</bpmn2:definitions>

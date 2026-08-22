@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PurchaseOrder.xsd · Phase 6 (Procurement)
+  Porosia e blerjes kanonike që Custom ERP prodhon kur stoku bie nën reorder point.
+  CI e harton në IDoc PORDCR1 (krijim PO në S/4) ose EDIFACT ORDERS (850) te furnitori.
+  Namespace: urn:albsale:o2c:canonical:1.0
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:element name="PurchaseOrder">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header"  type="o2c:PoHeaderType"/>
+        <xs:element name="Lines"   type="o2c:PoLinesType"/>
+        <xs:element name="Summary" type="o2c:PoSummaryType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="PoHeaderType">
+    <xs:sequence>
+      <xs:element name="PoNumber"      type="xs:string"/>
+      <xs:element name="PoDate"        type="xs:string"/>
+      <xs:element name="SupplierId"    type="xs:string"/>   <!-- LIFNR / partner furnitor -->
+      <xs:element name="CorrelationId" type="xs:string"/>
+      <xs:element name="Currency"      type="xs:string"/>
+      <xs:element name="Incoterms"     type="xs:string" minOccurs="0"/>
+      <xs:element name="Plant"         type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PoLinesType">
+    <xs:sequence><xs:element name="Line" type="o2c:PoLineType" maxOccurs="unbounded"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PoLineType">
+    <xs:sequence>
+      <xs:element name="LineNo"       type="xs:string"/>
+      <xs:element name="ProductRef"   type="xs:string"/>   <!-- saltcode / MATNR -->
+      <xs:element name="Description"  type="xs:string" minOccurs="0"/>
+      <xs:element name="Quantity"     type="xs:decimal"/>
+      <xs:element name="Unit"         type="xs:string"/>
+      <xs:element name="Price"        type="xs:decimal" minOccurs="0"/>
+      <xs:element name="DeliveryDate" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PoSummaryType">
+    <xs:sequence>
+      <xs:element name="TotalValue" type="xs:decimal"/>
+      <xs:element name="Currency"   type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

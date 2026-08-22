@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Goods Receipt (rimbushja e stokut) -> event kanonik për ERP (receive_goodsreceipt.php). Namespace default. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="GoodsReceipt">
+    <xs:complexType><xs:sequence>
+      <xs:element name="Header"><xs:complexType><xs:sequence>
+        <xs:element name="MaterialDocument" type="xs:string"/>
+        <xs:element name="PoNumber" type="xs:string" minOccurs="0"/>
+        <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+        <xs:element name="MovementType" type="xs:string" minOccurs="0"/>  <!-- 101 = GR -->
+        <xs:element name="PostingDate" type="xs:string" minOccurs="0"/>
+        <xs:element name="Plant" type="xs:string" minOccurs="0"/>
+      </xs:sequence></xs:complexType></xs:element>
+      <xs:element name="Items"><xs:complexType><xs:sequence>
+        <xs:element name="Item" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+          <xs:element name="LineNo" type="xs:string" minOccurs="0"/>
+          <xs:element name="ProductRef" type="xs:string"/>            <!-- saltcode -->
+          <xs:element name="ReceivedQuantity" type="xs:decimal"/>
+          <xs:element name="Unit" type="xs:string" minOccurs="0"/>
+          <xs:element name="Batch" type="xs:string" minOccurs="0"/>
+          <xs:element name="StorageLocation" type="xs:string" minOccurs="0"/>
+        </xs:sequence></xs:complexType></xs:element>
+      </xs:sequence></xs:complexType></xs:element>
+    </xs:sequence></xs:complexType>
+  </xs:element>
+</xs:schema>

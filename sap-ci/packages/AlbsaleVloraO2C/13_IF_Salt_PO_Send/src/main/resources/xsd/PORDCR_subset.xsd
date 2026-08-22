@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Nën-skemë e IDoc PORDCR1 (Purchase Order Create) — segmentet e nevojshme për Phase 6. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="PORDCR05">
+    <xs:complexType><xs:sequence>
+      <xs:element name="IDOC" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+        <xs:element name="EDI_DC40"><xs:complexType><xs:sequence>
+          <xs:element name="MESTYP" type="xs:string"/><xs:element name="IDOCTYP" type="xs:string"/>
+          <xs:element name="SNDPRN" type="xs:string"/><xs:element name="RCVPRN" type="xs:string"/>
+        </xs:sequence><xs:attribute name="SEGMENT" type="xs:string" use="required"/></xs:complexType></xs:element>
+        <xs:element name="E1PORDCR5"><xs:complexType><xs:sequence>
+          <xs:element name="BSART" type="xs:string" minOccurs="0"/>
+          <xs:element name="LIFNR" type="xs:string"/>       <!-- furnitori -->
+          <xs:element name="EKORG" type="xs:string" minOccurs="0"/>
+          <xs:element name="EKGRP" type="xs:string" minOccurs="0"/>
+          <xs:element name="WAERS" type="xs:string" minOccurs="0"/>
+          <xs:element name="E1BPEKKOA" minOccurs="0"><xs:complexType><xs:sequence>
+            <xs:element name="REF_DOC" type="xs:string" minOccurs="0"/></xs:sequence></xs:complexType></xs:element>
+          <xs:element name="E1BPEKPOC" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+            <xs:element name="PO_ITEM" type="xs:string"/>
+            <xs:element name="MATERIAL" type="xs:string"/>
+            <xs:element name="QUANTITY" type="xs:string"/>
+            <xs:element name="PO_UNIT" type="xs:string"/>
+            <xs:element name="NET_PRICE" type="xs:string" minOccurs="0"/>
+            <xs:element name="PLANT" type="xs:string" minOccurs="0"/>
+            <xs:element name="DELIV_DATE" type="xs:string" minOccurs="0"/>
+          </xs:sequence><xs:attribute name="SEGMENT" type="xs:string" use="required"/></xs:complexType></xs:element>
+        </xs:sequence><xs:attribute name="SEGMENT" type="xs:string" use="required"/></xs:complexType></xs:element>
+      </xs:sequence><xs:attribute name="BEGIN" type="xs:string" use="required"/></xs:complexType></xs:element>
+    </xs:sequence></xs:complexType>
+  </xs:element>
+</xs:schema>

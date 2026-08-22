@@ -1,0 +1,4 @@
+erp_monitor_url=https\://localhost/erp/public/api/integration/monitor_alert.php
+erp_inbound_token=
+smtp_host=smtp.albsalevlora.al\:587
+ops_email=ops@albsalevlora.al

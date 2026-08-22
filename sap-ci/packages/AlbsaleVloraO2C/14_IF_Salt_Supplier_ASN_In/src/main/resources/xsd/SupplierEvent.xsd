@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Konfirmimi/ASN i furnitorit -> event kanonik për ERP (receive_asn.php). Namespace default. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o2c="urn:albsale:o2c:canonical:1.0"
+           targetNamespace="urn:albsale:o2c:canonical:1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="SupplierEvent">
+    <xs:complexType><xs:sequence>
+      <xs:element name="Header"><xs:complexType><xs:sequence>
+        <xs:element name="EventType"><xs:simpleType><xs:restriction base="xs:string">
+          <xs:enumeration value="PO_CONFIRMED"/><xs:enumeration value="ASN"/><xs:enumeration value="PO_REJECTED"/>
+        </xs:restriction></xs:simpleType></xs:element>
+        <xs:element name="PoNumber" type="xs:string" minOccurs="0"/>
+        <xs:element name="SupplierId" type="xs:string" minOccurs="0"/>
+        <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+        <xs:element name="ConfirmationNo" type="xs:string" minOccurs="0"/>
+        <xs:element name="DeliveryDate" type="xs:string" minOccurs="0"/>
+        <xs:element name="EventDate" type="xs:string" minOccurs="0"/>
+      </xs:sequence></xs:complexType></xs:element>
+      <xs:element name="Items" minOccurs="0"><xs:complexType><xs:sequence>
+        <xs:element name="Item" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+          <xs:element name="LineNo" type="xs:string" minOccurs="0"/>
+          <xs:element name="ProductRef" type="xs:string" minOccurs="0"/>
+          <xs:element name="ConfirmedQuantity" type="xs:decimal" minOccurs="0"/>
+          <xs:element name="Unit" type="xs:string" minOccurs="0"/>
+          <xs:element name="ConfirmedDate" type="xs:string" minOccurs="0"/>
+        </xs:sequence></xs:complexType></xs:element>
+      </xs:sequence></xs:complexType></xs:element>
+    </xs:sequence></xs:complexType>
+  </xs:element>
+</xs:schema>
