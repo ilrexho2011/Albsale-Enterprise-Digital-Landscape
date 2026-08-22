@@ -1,0 +1,4 @@
+# IF_Salt_Stock_ATP_Query
+s4_odata_stock_url=https\://s4host\:44300/sap/opu/odata/sap/API_MATERIAL_STOCK_SRV
+s4_odata_credential=S4_ODATA_USER
+default_plant=1000

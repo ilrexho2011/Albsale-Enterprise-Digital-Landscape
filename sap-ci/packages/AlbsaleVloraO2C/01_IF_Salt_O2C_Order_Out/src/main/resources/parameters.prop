@@ -1,0 +1,10 @@
+# Externalized parameters — IF_Salt_O2C_Order_Out (default values, mbishkruhen per tenant)
+erp_logical_system=ALBSALE_SALT
+s4_logical_system=ZS4CLNT100
+s4_idoc_url=https\://s4host\:44300/sap/bc/idoc_xml
+s4_credential_alias=S4_IDOC_USER
+s4_sender_port=SAPZRC
+sales_org=1000
+distr_channel=10
+division=00
+order_type=TA

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters><param_references>
+  <parameter><name>erp_inbound_token</name><datatype>custom:secureParameter</datatype></parameter>
+</param_references></parameters>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters><param_references>
+  <parameter><name>s4_odata_stock_url</name><datatype>xsd:string</datatype></parameter>
+  <parameter><name>s4_odata_credential</name><datatype>custom:credentialName</datatype></parameter>
+  <parameter><name>default_plant</name><datatype>xsd:string</datatype></parameter>
+</param_references></parameters>

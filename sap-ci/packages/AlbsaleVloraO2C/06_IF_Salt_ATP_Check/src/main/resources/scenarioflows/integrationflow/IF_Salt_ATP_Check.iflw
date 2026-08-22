@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IF_Salt_ATP_Check.iflw · Phase 3 · Advanced ATP (aATP) i vërtetë
+  ERP dërgon kërkesë {material, plant, requestedQuantity, requestedDate}. CI e kthen në
+  kërkesë OData drejt aATP (Availability Information) të S/4HANA, pastaj llogarit sasinë
+  dhe datën e KONFIRMUAR + mungesën (shortfall) dhe kthen JSON.
+  Sender: HTTPS POST /salt/atp   Receiver: OData S/4 (API_AVAILABILITY_INFORMATION_SRV)
+-->
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:ifl="http:///com.sap.ifl.model/Ifl.xsd"
+                   id="Definitions_ATP_Check">
+
+  <bpmn2:collaboration id="Collab_ATP" name="IF_Salt_ATP_Check">
+    <bpmn2:extensionElements><ifl:property><key>log</key><value>All events</value></ifl:property></bpmn2:extensionElements>
+
+    <bpmn2:participant id="P_Sender" ifl:type="EndpointSender"   name="ERP_Salt"/>
+    <bpmn2:participant id="P_OData"  ifl:type="EndpointReceiver" name="S4HANA_aATP"/>
+    <bpmn2:participant id="P_Proc"   ifl:type="IntegrationProcess" name="Integration Process" processRef="Proc_ATP"/>
+
+    <bpmn2:messageFlow id="MF_HTTPS" name="HTTPS" sourceRef="P_Sender" targetRef="Start_ATP">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HTTPS</value></ifl:property>
+        <ifl:property><key>urlPath</key><value>/salt/atp</value></ifl:property>
+        <ifl:property><key>senderAuthType</key><value>ClientCertificate</value></ifl:property>
+        <ifl:property><key>userRole</key><value>ESBMessaging.send</value></ifl:property>
+        <ifl:property><key>Method</key><value>POST</value></ifl:property>
+        <ifl:property><key>direction</key><value>Sender</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+
+    <bpmn2:messageFlow id="MF_OData" name="OData" sourceRef="RR_OData" targetRef="P_OData">
+      <bpmn2:extensionElements>
+        <ifl:property><key>ComponentType</key><value>HCIOData</value></ifl:property>
+        <ifl:property><key>address</key><value>{{s4_odata_atp_url}}</value></ifl:property>
+        <ifl:property><key>credentialName</key><value>{{s4_odata_credential}}</value></ifl:property>
+        <ifl:property><key>operation</key><value>Query(GET)</value></ifl:property>
+        <ifl:property><key>resourcePath</key><value>AvailabilityInformation</value></ifl:property>
+        <ifl:property><key>queryOptions</key><value>$filter=Material eq '${property.p_material}' and Plant eq '${property.p_plant}' and AvailabilityDate ge datetime'${property.p_date}T00:00:00'&amp;$orderby=AvailabilityDate asc&amp;$select=Material,Plant,AvailabilityDate,AvailableQuantity,BaseUnit</value></ifl:property>
+        <ifl:property><key>direction</key><value>Receiver</value></ifl:property>
+      </bpmn2:extensionElements>
+    </bpmn2:messageFlow>
+  </bpmn2:collaboration>
+
+  <bpmn2:process id="Proc_ATP" name="Integration Process">
+    <bpmn2:startEvent id="Start_ATP" name="Start"><bpmn2:messageEventDefinition/><bpmn2:outgoing>a1</bpmn2:outgoing></bpmn2:startEvent>
+
+    <bpmn2:callActivity id="SC_BuildReq" name="Build aATP Request" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>buildAtpRequest.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a1</bpmn2:incoming><bpmn2:outgoing>a2</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="RR_OData" name="Query aATP (OData)" ifl:activityType="ExternalCall">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>ExternalCall</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a2</bpmn2:incoming><bpmn2:outgoing>a3</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:callActivity id="SC_MapResp" name="Compute Confirmation" ifl:activityType="Script">
+      <bpmn2:extensionElements><ifl:property><key>activityType</key><value>Script</value></ifl:property>
+        <ifl:property><key>scriptFunction</key><value>processData</value></ifl:property>
+        <ifl:property><key>script</key><value>mapAtpResponse.groovy</value></ifl:property></bpmn2:extensionElements>
+      <bpmn2:incoming>a3</bpmn2:incoming><bpmn2:outgoing>a4</bpmn2:outgoing>
+    </bpmn2:callActivity>
+
+    <bpmn2:endEvent id="End_ATP" name="End"><bpmn2:messageEventDefinition/><bpmn2:incoming>a4</bpmn2:incoming></bpmn2:endEvent>
+
+    <bpmn2:sequenceFlow id="a1" sourceRef="Start_ATP"  targetRef="SC_BuildReq"/>
+    <bpmn2:sequenceFlow id="a2" sourceRef="SC_BuildReq" targetRef="RR_OData"/>
+    <bpmn2:sequenceFlow id="a3" sourceRef="RR_OData"   targetRef="SC_MapResp"/>
+    <bpmn2:sequenceFlow id="a4" sourceRef="SC_MapResp" targetRef="End_ATP"/>
+  </bpmn2:process>
+</bpmn2:definitions>
