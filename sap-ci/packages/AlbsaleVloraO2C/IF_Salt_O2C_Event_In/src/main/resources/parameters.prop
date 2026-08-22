@@ -1,3 +1,0 @@
-# Externalized parameters — IF_Salt_O2C_Event_In
-erp_receive_event_url=https\://localhost/erp/public/api/integration/receive_event.php
-erp_inbound_token=
