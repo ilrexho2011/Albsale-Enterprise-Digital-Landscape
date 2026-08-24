@@ -36,7 +36,7 @@ FUNCTION z_salt_salesorder_create.
   ls_header-sales_org  = iv_vkorg.
   ls_header-distr_chan = iv_vtweg.
   ls_header-division   = iv_spart.
-  ls_header-purch_no_c = iv_corrid.        " CorrelationId -> BSTKD (gjurmim)
+  ls_header-purch_no_c = iv_corrid.        " CorrelationId -> BSTKD (per gjurmim)
 
   APPEND VALUE bapiparnr(
       partn_role = 'AG' partn_numb = lv_kunnr ) TO lt_partners.
