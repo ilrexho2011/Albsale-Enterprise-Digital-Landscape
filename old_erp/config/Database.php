@@ -2,9 +2,9 @@
   class Database {
     // DB Params
     private $host = 'localhost';
-    private $db_name = 'albsale-vlora';
-    private $username = 'ilrexho';
-    private $password = 'nA)Aj9NQWix0[diC';
+    private $db_name = 'nnnnnnnnnnnnnnnnn';
+    private $username = 'xxxxxxxxxxxx';
+    private $password = 'yyyyyyyyyyyy';
     private $conn;
 
     // DB Connect
