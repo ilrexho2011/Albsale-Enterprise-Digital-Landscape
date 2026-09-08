@@ -5,28 +5,33 @@ Ky udhëzues shpjegon si t'i vësh në punë 16 iFlow-t e projektit në SAP Clou
 ZIP-et gjenden te `sap-ci/import-zips/<iflow>.zip` — janë artefakte me strukturën e saktë
 (`META-INF/`, `src/…`, `.project`, `metainfo.prop` në rrënjë).
 ---
-0. Pritshmëri e ndershme (lexo së pari)
+
 1. Resurset janë 100% të ripërdorshme:
 2. mapping-et (`\\\*.xsl`), skemat (`\\\*.xsd`),
 3. skriptet Groovy (`\\\*.groovy`) dhe parametrat — i ngarkon drejtpërdrejt në një iFlow pa ndryshim.
 `.iflw`-të janë blueprint besnikë, jo eksporte nga Web UI. U mungon seksioni i diagramit
 (koordinatat BPMN shape/edge) dhe disa `componentVersion`/`cmdVariantUri` që i vë vetë mjeti.
+
 Prandaj:
 Disa tenant-e e pranojnë importin e ZIP-it dhe e hapin iFlow-in (pa layout, por të plotë).
 Të tjerë e refuzojnë ose e hapin me komponentë të papozicionuar → duhet rirregullim.
-Rekomandimi praktik: provo importin e ZIP-it (Rruga A). Nëse dështon për një iFlow,
-kalo te Rruga B (ndërto guaskën në Web UI dhe ngarko resurset) — të dyja të dokumentuara më poshtë.
+
+Rekomandimi praktik: provo importin e ZIP-it (Rruga A). 
+Nëse dështon për një iFlow, kalo te Rruga B (ndërto guaskën në Web UI dhe ngarko resurset) — të dyja të dokumentuara më poshtë.
 ---
+
 1. Parakushtet në tenant (KRIJO KËTO NJË HERË)
 Pa këto, iFlow-t importohen por nuk deploy-ohen:
+
 Objekt	Emri	Përdoret nga
-Integration Package	`AlbsaleVloraO2C`	të gjitha iFlow-t
-JMS Queue	`salt.orders`	Order_Enqueue / Order_Consumer
-Data Store	`salt\\\_orders\\\_dlq`	Order_Consumer (dead-letter)
-Security Material (User Credentials)	`S4\\\_IDOC\\\_USER`	të gjithë IDoc receiver-at
-Security Material (User Credentials)	`S4\\\_ODATA\\\_USER`	të gjithë OData receiver-at
-Security Material (Secure Parameter)	`erp\\\_inbound\\\_token`	të gjithë endpoint-et INBOUND te ERP
-Security Material	`AEM\\\_BROKER\\\_CRED`	Event_Publish (AMQP)
+
+- Integration Package	`AlbsaleVloraO2C`	të gjitha iFlow-t
+- JMS Queue	`salt.orders`	Order_Enqueue / Order_Consumer
+- Data Store	`salt\\\_orders\\\_dlq`	Order_Consumer (dead-letter)
+- Security Material (User Credentials)	`S4\\\_IDOC\\\_USER`	të gjithë IDoc receiver-at
+- Security Material (User Credentials)	`S4\\\_ODATA\\\_USER`	të gjithë OData receiver-at
+- Security Material (Secure Parameter)	`erp\\\_inbound\\\_token`	të gjithë endpoint-et INBOUND te ERP
+- Security Material	`AEM\\\_BROKER\\\_CRED`	Event_Publish (AMQP)
 Advanced Event Mesh	topik `albsale/o2c/\\\*`	Event_Publish
 Mail (SMTP)	host + `ops\\\_email`	Monitoring_Collector
 JDBC Data Source	`HANA\\\_CLOUD\\\_ANALYTICS`	Analytics_Replicate
