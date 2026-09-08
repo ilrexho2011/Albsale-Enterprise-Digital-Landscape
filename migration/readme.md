@@ -1,11 +1,14 @@
 SAP Integration Suite — Import Guide (AlbsaleVloraO2C)
+
 Ky udhëzues shpjegon si t'i vësh në punë 16 iFlow-t e projektit në SAP Cloud Integration.
+
 ZIP-et gjenden te `sap-ci/import-zips/<iflow>.zip` — janë artefakte me strukturën e saktë
 (`META-INF/`, `src/…`, `.project`, `metainfo.prop` në rrënjë).
 ---
 0. Pritshmëri e ndershme (lexo së pari)
-Resurset janë 100% të ripërdorshme: mapping-et (`\\\*.xsl`), skemat (`\\\*.xsd`),
-skriptet Groovy (`\\\*.groovy`) dhe parametrat — i ngarkon drejtpërdrejt në një iFlow pa ndryshim.
+1. Resurset janë 100% të ripërdorshme:
+2. mapping-et (`\\\*.xsl`), skemat (`\\\*.xsd`),
+3. skriptet Groovy (`\\\*.groovy`) dhe parametrat — i ngarkon drejtpërdrejt në një iFlow pa ndryshim.
 `.iflw`-të janë blueprint besnikë, jo eksporte nga Web UI. U mungon seksioni i diagramit
 (koordinatat BPMN shape/edge) dhe disa `componentVersion`/`cmdVariantUri` që i vë vetë mjeti.
 Prandaj:
