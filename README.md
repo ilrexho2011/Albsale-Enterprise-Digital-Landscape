@@ -69,6 +69,7 @@ SAP HANA Cloud
     │
 Analytics / KPIs / Dashboards
 ```
+<img width="1184" height="664" alt="image" src="https://github.com/user-attachments/assets/bc1e2db1-8b0a-4676-910b-d00f2aaf5ad7" />
 
 ---
 
