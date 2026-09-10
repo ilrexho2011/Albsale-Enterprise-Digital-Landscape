@@ -76,19 +76,33 @@ IF_Salt_O2C_Order_Out	HTTPS `/salt/orders`	IDoc → S/4	ORDERS05
 IF_Salt_O2C_Order_Enqueue	HTTPS `/salt/orders/async`	JMS `salt.orders`	202
 
 IF_Salt_O2C_Order_Consumer	JMS `salt.orders`	IDoc → S/4 (+DataStore DLQ)	retry 5×
+
 IF_Salt_O2C_Event_In	IDoc `/salt/events`	HTTP → `receive\\\_event.php`	router MESTYP
+
 IF_Salt_Stock_ATP_Query	HTTPS `/salt/stock`	OData → S/4	API_MATERIAL_STOCK_SRV
+
 IF_Salt_ATP_Check	HTTPS `/salt/atp`	OData → S/4	API_AVAILABILITY_INFORMATION_SRV
+
 IF_Salt_EWM_Event_In	IDoc `/salt/ewm`	HTTP → `receive\\\_warehouse.php`	SHPCON
+
 IF_Salt_FI_Event_In	HTTPS `/salt/fi`	HTTP → `receive\\\_finance.php`	FI event
+
 IF_Salt_Finance_Status	HTTPS `/salt/finance`	OData → S/4	API_OPLACCTGDOCITEMCUBE_SRV
+
 IF_Salt_Event_Publish	HTTPS `/salt/event/publish`	AMQP → AEM	topik `albsale/o2c/\\\*`
+
 IF_Salt_Monitoring_Collector	HTTPS `/salt/alert`	HTTP → ERP + Mail	`monitor\\\_alert.php`
+
 IF_Salt_Analytics_Replicate	Timer (15 min)	HTTP → ERP; JDBC → HANA	`extract.php`
+
 IF_Salt_PO_Send	HTTPS `/salt/po`	IDoc → S/4 MM	PORDCR
+
 IF_Salt_Supplier_ASN_In	IDoc `/salt/asn`	HTTP → `receive\\\_asn.php`	ORDRSP (LF)
+
 IF_Salt_GR_In	IDoc `/salt/gr`	HTTP → `receive\\\_goodsreceipt.php`	MBGMCR
+
 IF_Salt_ATP_Reserve	HTTPS `/salt/atp/reserve`	OData action → S/4	ConfirmAndReserve
+
 ---
 6. Renditja e rekomanduar e deploy-it
 Bërthama O2C: Order_Out → Event_In → (test një porosi end-to-end).
