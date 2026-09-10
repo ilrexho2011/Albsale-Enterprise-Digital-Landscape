@@ -1,6 +1,6 @@
-## SAP Integration Suite — Import Guide (AlbsaleVloraO2C)
+# SAP Integration Suite — Import Guide (AlbsaleVloraO2C)
 
-# Ky udhëzues shpjegon si vihen në punë 16 iFlow-t e projektit në SAP Cloud Integration.
+## Ky udhëzues shpjegon si vihen në punë 16 iFlow-t e projektit në SAP Cloud Integration.
 
 ---
 
