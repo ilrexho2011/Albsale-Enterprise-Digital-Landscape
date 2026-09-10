@@ -30,43 +30,43 @@ Objekt	Emri	Përdoret nga
 - Security Material (User Credentials)	`S4\\\_ODATA\\\_USER`	të gjithë OData receiver-at
 - Security Material (Secure Parameter)	`erp\\\_inbound\\\_token`	të gjithë endpoint-et INBOUND te ERP
 - Security Material	`AEM\\\_BROKER\\\_CRED`	Event_Publish (AMQP)
-Advanced Event Mesh	topik `albsale/o2c/\\\*`	Event_Publish
-Mail (SMTP)	host + `ops\\\_email`	Monitoring_Collector
-JDBC Data Source	`HANA\\\_CLOUD\\\_ANALYTICS`	Analytics_Replicate
-OData services (S/4 Gateway, të publikuara)	`API\\\_MATERIAL\\\_STOCK\\\_SRV`, `API\\\_AVAILABILITY\\\_INFORMATION\\\_SRV`, `API\\\_OPLACCTGDOCITEMCUBE\\\_SRV`	Stock/ATP/Finance
-aATP action	`ConfirmAndReserve`	ATP_Reserve
-`erp\\\_inbound\\\_token` (CI) DUHET të jetë i njëjtë me `SALT\\\_INBOUND\\\_TOKEN` te `.env` i ERP-së.
+- Advanced Event Mesh	topik `albsale/o2c/\\\*`	Event_Publish
+- Mail (SMTP)	host + `ops\\\_email`	Monitoring_Collector
+- JDBC Data Source	`HANA\\\_CLOUD\\\_ANALYTICS`	Analytics_Replicate
+- OData services (S/4 Gateway, të publikuara)	`API\\\_MATERIAL\\\_STOCK\\\_SRV`, `API\\\_AVAILABILITY\\\_INFORMATION\\\_SRV`, `API\\\_OPLACCTGDOCITEMCUBE\\\_SRV`	Stock/ATP/Finance
+- aATP action	`ConfirmAndReserve`	ATP_Reserve
+- `erp\\\_inbound\\\_token` (CI) DUHET të jetë i njëjtë me `SALT\\\_INBOUND\\\_TOKEN` te `.env` i ERP-së.
 ---
 2. Rruga A — Import i drejtpërdrejtë i ZIP-it (provë)
-Integration Suite → Design → hap/krijo paketën `AlbsaleVloraO2C`.
-Artifacts → Add → Integration Flow → Upload → zgjidh `sap-ci/import-zips/<iflow>.zip`.
-Nëse hapet: Configure parametrat e jashtëm (shih §4), pastaj Save → Deploy.
-Nëse importi dështon me gabim validimi/BPMN → kalo te Rruga B për atë iFlow.
-> Këshillë: fillo me një iFlow të thjeshtë (p.sh. `IF\\\_Salt\\\_Stock\\\_ATP\\\_Query`) për ta parë si sillet importuesi yt.
+- Integration Suite → Design → hap/krijo paketën `AlbsaleVloraO2C`.
+- Artifacts → Add → Integration Flow → Upload → zgjidh `sap-ci/import-zips/<iflow>.zip`.
+- Nëse hapet: Configure parametrat e jashtëm (shih §4), pastaj Save → Deploy.
+- Nëse importi dështon me gabim validimi/BPMN → kalo te Rruga B për atë iFlow.
+-  Këshillë: fillo me një iFlow të thjeshtë (p.sh. `IF\\\_Salt\\\_Stock\\\_ATP\\\_Query`) për ta parë si sillet importuesi yt.
 ---
 3. Rruga B — Ndërto guaskën në Web UI + ngarko resurset (i sigurt)
-Për çdo iFlow, hape `docs/CATALOG\\\_<iflow>.md` (seksioni §4–8 "Flow & Processing") dhe replikoje:
-Krijo iFlow të ri në paketë me të njëjtin emër.
-Sender/Receiver: shto pjesëmarrësit dhe adaptorët sipas tabelës në §5 më poshtë.
-Hapat e procesit: shto Content Modifier / Router / Message Mapping / Script / Request-Reply
+- Për çdo iFlow, hape `docs/CATALOG\\\_<iflow>.md` (seksioni §4–8 "Flow & Processing") dhe replikoje:
+- Krijo iFlow të ri në paketë me të njëjtin emër.
+- Sender/Receiver: shto pjesëmarrësit dhe adaptorët sipas tabelës në §5 më poshtë.
+- Hapat e procesit: shto Content Modifier / Router / Message Mapping / Script / Request-Reply
 sipas rrjedhës në katalog.
-Ngarko resurset (nga ZIP-i i po atij iFlow ose nga dosja):
-Message Mapping (XSLT): shto një "XSLT Mapping" step → Upload `mapping/\\\*.xsl`.
-Schemas: referoji `xsd/\\\*.xsd` aty ku duhen (mapping source/target).
-Groovy: shto "Script" step → Upload `script/\\\*.groovy` (funksioni `processData`).
-Externalized Parameters: vendos vlerat nga `src/main/resources/parameters.prop`.
-Save → Deploy.
-Resurset janë të njëjta si te Rruga A, thjesht i lidh manualisht — kjo është pjesa më e madhe e punës dhe është gati.
+- Ngarko resurset (nga ZIP-i i po atij iFlow ose nga dosja):
+- Message Mapping (XSLT): shto një "XSLT Mapping" step → Upload `mapping/\\\*.xsl`.
+- Schemas: referoji `xsd/\\\*.xsd` aty ku duhen (mapping source/target).
+- Groovy: shto "Script" step → Upload `script/\\\*.groovy` (funksioni `processData`).
+- Externalized Parameters: vendos vlerat nga `src/main/resources/parameters.prop`.
+- Save → Deploy.
+- Resurset janë të njëjta si te Rruga A, thjesht i lidh manualisht — kjo është pjesa më e madhe e punës dhe është gati.
 ---
 4. Externalized Parameters (nga `parameters.prop` i secilit)
-Vendos vlerat reale të tenant-it/S4 para deploy-it. Shembuj kyç:
-S4 IDoc: `s4\\\_idoc\\\_url`, `s4\\\_credential\\\_alias=S4\\\_IDOC\\\_USER`, `s4\\\_logical\\\_system=ZS4CLNT100`
-Org SD (Order_Out/Consumer): `sales\\\_org=1000`, `distr\\\_channel=10`, `division=00`, `order\\\_type=TA`
-Org MM (PO_Send): `purch\\\_org=1000`, `purch\\\_group=001`, `po\\\_type=NB`
-ERP endpoints (INBOUND): `erp\\\_receive\\\_event\\\_url`, `erp\\\_warehouse\\\_url`, `erp\\\_finance\\\_url`,
+- Vendos vlerat reale të tenant-it/S4 para deploy-it. Shembuj kyç:
+- S4 IDoc: `s4\\\_idoc\\\_url`, `s4\\\_credential\\\_alias=S4\\\_IDOC\\\_USER`, `s4\\\_logical\\\_system=ZS4CLNT100`
+- Org SD (Order_Out/Consumer): `sales\\\_org=1000`, `distr\\\_channel=10`, `division=00`, `order\\\_type=TA`
+- Org MM (PO_Send): `purch\\\_org=1000`, `purch\\\_group=001`, `po\\\_type=NB`
+- ERP endpoints (INBOUND): `erp\\\_receive\\\_event\\\_url`, `erp\\\_warehouse\\\_url`, `erp\\\_finance\\\_url`,
 `erp\\\_asn\\\_url`, `erp\\\_gr\\\_url`, `erp\\\_monitor\\\_url`, `erp\\\_extract\\\_url` + `erp\\\_inbound\\\_token`
-OData: `s4\\\_odata\\\_stock\\\_url`, `s4\\\_odata\\\_atp\\\_url`, `s4\\\_odata\\\_ar\\\_url`, `s4\\\_odata\\\_credential=S4\\\_ODATA\\\_USER`
-AEM/HANA/Mail: `aem\\\_credential`, `hana\\\_jdbc\\\_alias`, `smtp\\\_host`, `ops\\\_email`
+- OData: `s4\\\_odata\\\_stock\\\_url`, `s4\\\_odata\\\_atp\\\_url`, `s4\\\_odata\\\_ar\\\_url`, `s4\\\_odata\\\_credential=S4\\\_ODATA\\\_USER`
+- AEM/HANA/Mail: `aem\\\_credential`, `hana\\\_jdbc\\\_alias`, `smtp\\\_host`, `ops\\\_email`
 ---
 5. Përmbledhje adaptorësh & rrugësh (16 iFlow)
 iFlow	Sender	Receiver	Endpoint / Objekt
@@ -98,8 +98,8 @@ iFlow	Sender	Receiver	Endpoint / Objekt
 - Platforma: Event_Publish → Monitoring_Collector → Analytics_Replicate.
 ---
 7. Verifikim pas deploy-it
-Runtime → Manage Integration Content: iFlow = Started.
-Monitor Message Processing (MPL): kërko header `CorrelationId = SALT-<ZINN>-<idso>-<rand>`.
-Testo një thirrje nga ERP (p.sh. `myorders.php` → "An SAP senden") dhe ndiq rrjedhën në MPL.
+- Runtime → Manage Integration Content: iFlow = Started.
+- Monitor Message Processing (MPL): kërko header `CorrelationId = SALT-<ZINN>-<idso>-<rand>`.
+- Testo një thirrje nga ERP (p.sh. `myorders.php` → "An SAP senden") dhe ndiq rrjedhën në MPL.
 > Nëse një `.iflw` s'importohet, kjo NUK është humbje: katalogu + resurset e ZIP-it e bëjnë
 > rikrijimin në Web UI çështje minutash për iFlow.
