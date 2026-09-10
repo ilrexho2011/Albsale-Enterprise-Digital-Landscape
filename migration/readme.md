@@ -1,9 +1,7 @@
-SAP Integration Suite — Import Guide (AlbsaleVloraO2C)
+## SAP Integration Suite — Import Guide (AlbsaleVloraO2C)
 
-Ky udhëzues shpjegon si t'i vësh në punë 16 iFlow-t e projektit në SAP Cloud Integration.
+# Ky udhëzues shpjegon si vihen në punë 16 iFlow-t e projektit në SAP Cloud Integration.
 
-ZIP-et gjenden te `sap-ci/import-zips/<iflow>.zip` — janë artefakte me strukturën e saktë
-(`META-INF/`, `src/…`, `.project`, `metainfo.prop` në rrënjë).
 ---
 
 1. Resurset janë 100% të ripërdorshme:
