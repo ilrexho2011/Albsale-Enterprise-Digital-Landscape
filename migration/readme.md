@@ -7,8 +7,8 @@
 1. Resurset janë 100% të ripërdorshme:
 2. mapping-et (`\\\*.xsl`), skemat (`\\\*.xsd`),
 3. skriptet Groovy (`\\\*.groovy`) dhe parametrat — i ngarkon drejtpërdrejt në një iFlow pa ndryshim.
-`.iflw`-të janë blueprint besnikë, jo eksporte nga Web UI. U mungon seksioni i diagramit
-(koordinatat BPMN shape/edge) dhe disa `componentVersion`/`cmdVariantUri` që i vë vetë mjeti.
+4. `.iflw`-të janë blueprint besnikë, jo eksporte nga Web UI.
+5. U mungon seksioni i diagramit (koordinatat BPMN shape/edge) dhe disa `componentVersion`/`cmdVariantUri` që i vë vetë mjeti.
 
 Prandaj:
 Disa tenant-e e pranojnë importin e ZIP-it dhe e hapin iFlow-in (pa layout, por të plotë).
