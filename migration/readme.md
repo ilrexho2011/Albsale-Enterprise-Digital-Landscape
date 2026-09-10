@@ -70,8 +70,11 @@ AEM/HANA/Mail: `aem\\\_credential`, `hana\\\_jdbc\\\_alias`, `smtp\\\_host`, `op
 ---
 5. Përmbledhje adaptorësh & rrugësh (16 iFlow)
 iFlow	Sender	Receiver	Endpoint / Objekt
+
 IF_Salt_O2C_Order_Out	HTTPS `/salt/orders`	IDoc → S/4	ORDERS05
+
 IF_Salt_O2C_Order_Enqueue	HTTPS `/salt/orders/async`	JMS `salt.orders`	202
+
 IF_Salt_O2C_Order_Consumer	JMS `salt.orders`	IDoc → S/4 (+DataStore DLQ)	retry 5×
 IF_Salt_O2C_Event_In	IDoc `/salt/events`	HTTP → `receive\\\_event.php`	router MESTYP
 IF_Salt_Stock_ATP_Query	HTTPS `/salt/stock`	OData → S/4	API_MATERIAL_STOCK_SRV
