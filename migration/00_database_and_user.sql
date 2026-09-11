@@ -14,9 +14,9 @@ CREATE DATABASE IF NOT EXISTS `albsale-vlora`
 
 -- Nëse ekziston nga një provë e mëparshme, rikrijoje me të njëjtin fjalëkalim.
 CREATE USER IF NOT EXISTS 'albsale_app'@'localhost'
-  IDENTIFIED BY 'Albsale-2b02b4023c09ce3d';
+  IDENTIFIED BY 'Albsale-xxxxxxxxxxxxxxxxxx';
 ALTER USER 'albsale_app'@'localhost'
-  IDENTIFIED BY 'Albsale-2b02b4023c09ce3d';
+  IDENTIFIED BY 'Albsale-xxxxxxxxxxxxxxxxxx';
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON `albsale-vlora`.*
   TO 'albsale_app'@'localhost';
