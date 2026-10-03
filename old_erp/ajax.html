@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Albsale-Vlora Service testen</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" type="text/javascript"></script>
+    <script src="ajaxCall.js"></script>
+
+      <style>
+        body {
+          text-align: center;
+          font-family: "Helvetica", sans-serif;
+        }
+        h1 {
+          font-size: 1.5em;
+          font-weight: bold;
+        }
+        .box {
+          border-radius: 5px;
+          background-color: #eee;
+          padding: 20px 5px;
+        }
+        button {
+          color: white;
+          background-color: #4791d0;
+          border-radius: 5px;
+          border: 1px solid #4791d0;
+          padding: 5px 10px 8px 10px;
+        }
+        table {
+            border: 1px solid #000;
+            width: 100%;
+        }
+        tr:hover {
+            background-color: lightgreen;
+         }
+        td, th {
+             border: 1px solid #ccc;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2}
+        input{
+            width: 300px;
+            height: 25px;
+        }
+        button:hover {
+          background-color: #0F5897;
+          border: 1px solid #0F5897;
+        }
+      </style>
+</head>
+<body>
+    <div style="float:left; width:50%;">
+        <img src="image/logo.png" alt="" />
+        <h3>Where Technology meets Business!</h3>
+    </div>
+    <div style="float:right; width:50%;">
+        <img src="image/vlora-beach.png" alt="" />
+        <p><b>Schauen Sie auf das Meer, stellen Sie sich das Salz vor...</b></p>
+    </div>
+    <div style="float:left; width:50%;">
+        <h1>Albsale Vlora - Data Tester - Client Form</h1> 
+        <p class="message box"> Die Nachricht wird hier angezeigt </p>
+        <p><button id="getMessage"> Get Message </button></p><br />
+  <table>
+      <tr><th colspan="3">Liste der zugänglichen Funktionen und deren Adressen</th></tr>
+      <tr><th>=></th><th>Public Funktion</th><th>Zugriffsadresse</th></tr>
+      <tr><td>1.</td><td>createuser();</td><td>https://albsalevlora.al/salz/api/user/create.php</td></tr>
+      <tr><td>2.</td><td>readusers();</td><td>https://albsalevlora.al/salz/api/user/read.php</td></tr>
+      <tr><td>3.</td><td>read_only_one_user();</td><td>https://albsalevlora.al/salz/api/user/read_single.php</td></tr>
+      <tr><td>4.</td><td>deleteuser();</td><td>https://albsalevlora.al/salz/api/user/delete.php</td></tr>
+      <tr><td>5.</td><td>updateuser();</td><td>https://albsalevlora.al/salz/api/user/update.php</td></tr>
+      <tr><td>6.</td><td>createarticle();</td><td>https://albsalevlora.al/salz/api/article/create.php</td></tr>
+      <tr><td>7.</td><td>readarticles();</td><td>https://albsalevlora.al/salz/api/article/read.php</td></tr>
+      <tr><td>8.</td><td>read_only_one_article();</td><td>https://albsalevlora.al/salz/api/article/read_single.php</td></tr>
+      <tr><td>9.</td><td>deletearticle();</td><td>https://albsalevlora.al/salz/api/article/delete.php</td></tr>
+      <tr><td>10.</td><td>updatearticle();</td><td>https://albsalevlora.al/salz/api/article/update.php</td></tr>
+  </table>
+</div> 
+
+<div style="float:right; width:50%;">
+<h1>Artikel Sender</h1> 
+  <form id="apiform">
+
+    <input type="text" name="saltcode" placeholder="saltcode (Primary)*" autocomplete="on" /><br />
+    <input type="text" name="title" placeholder="title*" autocomplete="on" /><br />
+    <input type="text" name="stock" placeholder="stock*" autocomplete="on" /><br />
+    <input type="text" name="unit" placeholder="unit" autocomplete="on" /><br />
+    <input type="text" name="producer" placeholder="producer" autocomplete="on" /><br />
+    <input type="text" name="priceperunit" placeholder="priceperunit*" autocomplete="on" /><br />
+    <input type="text" name="currency" placeholder="currency" autocomplete="on" /><br /><br />
+
+    <button id="postMessage"> Post Message </button>
+  </form>
+</div>
+
+    <p></p>
+    <div style="float:right; width:50%; height: 100px;">
+        <p>&copy; Copyright <b>:: RealCore Group GmbH :: </b>IR May 2024</p>
+    </div>
+    
+</body>
+</html>
+
+
+
+
+
+
