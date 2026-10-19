@@ -1,0 +1,151 @@
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "teamprojekt",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.13.3",
+      "toolsId": "ee659cb6-8307-4770-8524-6ae0a302cc5d"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.123.2",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.f": {},
+        "sap.suite.ui.generic.template": {},
+        "sap.ui.comp": {},
+        "sap.ui.generic.app": {},
+        "sap.ui.table": {},
+        "sap.ushell": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "teamprojekt.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+          "routerClass": "sap.m.routing.Router",
+          "viewType": "XML",
+          "viewPath": "teamprojekt.view",
+          "controlId": "app",
+          "controlAggregation": "pages",
+          "async": true
+        
+      },
+      "routes": [
+        {
+          "name": "RouteApp",
+          "pattern": "RouteApp",
+          "target": ["TargetApp"]
+        },
+        {
+          "name": "Homepage",
+          "pattern": "",
+          "target": ["TargetHomepage"]
+        },
+        {
+          "name": "Loginpage",
+          "pattern": "Loginpage",
+          "target": ["TargetLoginpage"]
+        },
+        {
+          "name": "Registerpage",
+          "pattern": "Registerpage",
+          "target": ["TargetRegisterpage"]
+        },
+        {          
+          "name": "ProtectedPage",
+          "pattern": "protected",
+          "target": "ProtectedPage"
+        }
+      ],
+      "targets": {
+          "TargetApp": {
+            "viewType": "XML",
+            "transition":"slide",
+            "clearControlAggregation": false,
+            "viewId": "App",
+            "viewName": "App"
+        },
+          "TargetHomepage": {
+            "viewType": "XML",
+            "transition":"slide",
+            "clearControlAggregation": false,
+            "viewId": "Homepage",
+            "viewName": "Homepage"
+        },
+          "TargetLoginpage": {
+            "viewType": "XML",
+            "transition":"slide",
+            "clearControlAggregation": false,
+            "viewId": "Loginpage",
+            "viewName": "Loginpage"
+        },
+        "TargetRegisterpage": {
+          "viewType": "XML",
+          "transition":"slide",
+          "clearControlAggregation": false,
+          "viewId": "Registerpage",
+          "viewName": "Registerpage"
+      },
+      "TargetProtectedPage": {
+  "viewType": "XML",
+  "transition": "slide",
+  "clearControlAggregation": false,
+  "viewId": "ProtectedPage",
+  "viewName": "ProtectedPage"
+    }
+      }
+    },
+    "rootView": {
+      "viewName": "teamprojekt.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "app"
+    }  
+  }
+}
